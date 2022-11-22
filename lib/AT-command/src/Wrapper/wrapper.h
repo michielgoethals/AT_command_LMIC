@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LMIC/lmic.h"
+#include "/LMIC/lmic.h"
 
 typedef const char * LoraParam;
 
