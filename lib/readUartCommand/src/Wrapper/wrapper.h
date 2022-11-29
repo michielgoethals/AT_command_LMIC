@@ -1,6 +1,6 @@
 #pragma once
 
-#include "/LMIC/lmic.h"
+#include "./LMIC/lmic.h"
 
 typedef const char * LoraParam;
 
@@ -13,12 +13,10 @@ class Wrapper{
     void setDevEui(LoraParam deveui);
     void setAppEui(LoraParam appeui);
     void setNwskey(LoraParam nwskey);
-    void setAppskey(Loraparam appskey);
-    void 
+    void setAppskey(LoraParam appskey);
     void macReset(int band);
-
     void joinOtaa(void);
     void joinABP(void);
-}
+};
 
 

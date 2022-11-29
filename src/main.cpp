@@ -38,6 +38,8 @@ extern "C" void SystemClock_Config(void)
 
 ReadUartCommand reader(RX, TX); 
 
+char * command = nullptr;
+
 void setup(){
   Serial.begin(19200);
   Serial.println("Startup");
@@ -45,16 +47,13 @@ void setup(){
 }
 
 void loop(){
-  char* command = reader.getCommand();
+  command = nullptr;
+  command = reader.getCommand();
   Serial.write(command);
-
-  char* reply = "ok\r\n";
-
-  char* test = "test 123\r\n";
-
-  if(strcmp(command, test) == 0){
-    reader.sendReply(reply);
+  if (strcmp(command,"")!=0){
+    reader.parseCommand(command);
   }
 
+  
   delay(1000);
 }
