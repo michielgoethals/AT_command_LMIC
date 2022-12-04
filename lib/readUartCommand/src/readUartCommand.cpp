@@ -28,21 +28,21 @@ char * ReadUartCommand::getCommand(){
 }
 
 void ReadUartCommand::parseCommand(char* command){
-    char macOrSys[3];
-    char radio[5];
+    char filter1[3];
+    char filter2[5];
 
-    strncpy(macOrSys, command, 3);
-    macOrSys[3] = '\0';
-    strncpy(radio, command, 5);
-    radio[5] = '\0';
+    strncpy(filter1, command, 3);
+    filter1[3] = '\0';
+    strncpy(filter2, command, 5);
+    filter2[5] = '\0';
 
-    if(strcmp(macOrSys,"mac")== 0){
+    if(strcmp(filter1,"mac")== 0){
         mySerial.write("mac command found\r\n");
         parseMacCommand(command);
-    }else if(strcmp(macOrSys, "sys") == 0){
+    }else if(strcmp(filter1, "sys") == 0){
         mySerial.write("system command found\r\n");
         parseSysCommand(command);
-    }else if(strcmp(radio, "radio") == 0){
+    }else if(strcmp(filter2, "radio") == 0){
         mySerial.write("radio command found\r\n");
         parseRadioCommand(command);
     }else{
@@ -50,28 +50,44 @@ void ReadUartCommand::parseCommand(char* command){
     }
 }
 
+char* ReadUartCommand::getRemainingPart(char* arr, int offset){
+    char * buff;
+    int len = strlen(arr);
+
+    for(int i = offset; i < len; i++){
+        buff[i-offset] = arr[i];
+    }
+    
+    buff[len+1] = '\0';
+
+    return buff;
+}
+
 void ReadUartCommand::parseMacCommand(char* command){
-    char mac_set[7];
-    char mac_get[7];
+    char filter[8]; //get first 8 char of arr to check if mac set or mac get command
 
-    strncpy(mac_set, command, 7);
-    mac_set[7] = '\0';
-    strncpy(mac_get, command, 7);
-    mac_get[5] = '\0';
+    strncpy(filter, command, 8);
+    filter[8] = '\0';
 
-    if(strcmp(mac_set,"mac set")== 0){
+    if(strcmp(filter,"mac set ")== 0){
         mySerial.write("mac set command found\r\n");
-        parseMacSetCommand(command);
-    }else if(strcmp(mac_get,"mac get")== 0){
+        char * part;
+        part getRemainingPart(command, strlen(command));
+        parseMacSetCommand(part);
+    }else if(strcmp(filter,"mac get")== 0){
         mySerial.write("mac get command found\r\n");
         parseMacGetCommand(command);
+    }else if(strcmp(command, "mac reset 868")==0){
+        wrapper.macReset(868);
     }else{
         mySerial.write("other mac command");
     }
 }
 
 void ReadUartCommand::parseMacSetCommand(char* command){
-
+    if(strcmp(command, "devaddr ")==0){
+        wrapper.setDevAddr()
+    }
 }
 
 void ReadUartCommand::parseMacGetCommand(char* command){

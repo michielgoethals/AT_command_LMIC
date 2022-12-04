@@ -2,13 +2,13 @@
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include "Wrapper/wrapper.h"
+#include "wrapLmicAT/wrapLmicAt.h"
+#include <cstring>
 
 #define MAX_LENGTH_MESSAGE 127
+#define BAND868 868
 
-#define MAC_LEN 3
-#define SYS_LEN 3
-#define RADIO_LEN 5
+
 
 using namespace std;
 
@@ -28,8 +28,12 @@ class ReadUartCommand{
         void parseRadioCommand(char* command);
 
     private:
+        char * getRemainingPart(char* arr, int offset);
+
+    private:
         SoftwareSerial mySerial;
         char * command = nullptr;
+        WrapLmicAT wrapper;
         //const char * list_of_mac_commands[] ={"reset", "set appkey", "set deveui", "set appeui","join otaa", "join abp"};
         //const char * list_of_sys_commands[] ={""};
         //const char * list_of_radio_commands[] ={""};mySerial.write("no command found\r\n");
