@@ -52,42 +52,45 @@ void ReadUartCommand::parseCommand(char* command){
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
     char * buff;
+
     int len = strlen(arr);
 
-    for(int i = offset; i < len; i++){
-        buff[i-offset] = arr[i];
-    }
-    
+    buff = &arr[offset];
+
     buff[len+1] = '\0';
 
     return buff;
 }
 
 void ReadUartCommand::parseMacCommand(char* command){
-    char filter[8]; //get first 8 char of arr to check if mac set or mac get command
+    char filter[MACSETCHARS]; //get first 8 char of arr to check if mac set or mac get command
 
-    strncpy(filter, command, 8);
-    filter[8] = '\0';
+    strncpy(filter, command, MACSETCHARS);
+    filter[MACSETCHARS] = '\0';
+
+    char * part;
 
     if(strcmp(filter,"mac set ")== 0){
-        mySerial.write("mac set command found\r\n");
-        char * part;
-        part getRemainingPart(command, strlen(command));
+        part = getRemainingPart(command, MACSETCHARS);
+        mySerial.write(part);
         parseMacSetCommand(part);
-    }else if(strcmp(filter,"mac get")== 0){
-        mySerial.write("mac get command found\r\n");
-        parseMacGetCommand(command);
+    }else if(strcmp(filter,"mac get ")== 0){
+        part = getRemainingPart(command, MACGETCHARS);
+        parseMacGetCommand(part);
     }else if(strcmp(command, "mac reset 868")==0){
         wrapper.macReset(868);
+    }else if(strcmp(command, "mac reset 434")==0){
+        wrapper.macReset(434);
     }else{
         mySerial.write("other mac command");
     }
 }
 
-void ReadUartCommand::parseMacSetCommand(char* command){
+void ReadUartCommand::parseMacSetCommand(char* macsetcom){
+  /*   LoraParam test = 0;
     if(strcmp(command, "devaddr ")==0){
-        wrapper.setDevAddr()
-    }
+        wrapper.setDevAddr(test);
+    } */
 }
 
 void ReadUartCommand::parseMacGetCommand(char* command){

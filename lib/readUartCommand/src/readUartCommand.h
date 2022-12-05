@@ -8,6 +8,9 @@
 #define MAX_LENGTH_MESSAGE 127
 #define BAND868 868
 
+#define MACSETCHARS 8
+#define MACGETCHARS 8
+
 
 
 using namespace std;

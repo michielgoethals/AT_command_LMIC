@@ -1,7 +1,17 @@
 #pragma once
 
 #include "./LMIC/lmic.h"
+#include "LMIC/hal/hal.h"
+#include <SPI.h>
+
 #include <stdlib.h> 
+
+// LoRaWAN LMIC constants
+#define LMIC_NSS_PIN 				   6
+#define LMIC_RST_PIN 				   LMIC_UNUSED_PIN
+#define LMIC_DIO0_PIN 				   LMIC_UNUSED_PIN
+#define LMIC_DIO1_PIN 				   LMIC_UNUSED_PIN
+#define LMIC_DIO2_PIN 				   LMIC_UNUSED_PIN
 
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16
@@ -25,12 +35,38 @@ class WrapLmicAT{
         void setAppskey(LoraParam appskey);
         void joinABP(void);
 
+        void os_getArtEui (u1_t* buf);
+        void os_getDevEui (u1_t* buf);
+        void os_getDevKey (u1_t* buf);
         void macReset(int band);
+
+        void printHex2(unsigned v);
+        void onEvent(ev_t ev);
+        void do_send(osjob_t* j);
+    
     private:
+        //OTAA
+        static u1_t _appeui[LORA_EUI_SIZE];
+        static u1_t _deveui[LORA_EUI_SIZE];
+        static u1_t _appkey[LORA_KEY_SIZE];
+
         bool devEuiSet = false;
         bool appEuiSet = false;
         bool appKeySet = false;
-        char tempStr[3] = {0x00, 0x00, 0x00};
+
+        //ABP
+
+        static u1_t _appskey[LORA_KEY_SIZE];
+        static u1_t _nwkskey[LORA_KEY_SIZE];
+        static u4_t _devaddr;
+        static u4_t _netid;
+
+        bool nwksKeySet = false;
+        bool devAddrSet = false;
+        bool appsKeySet = false;
+
+        static osjob_t sendjob;
+        const unsigned TX_INTERVAL = 60;
 };
 
 
