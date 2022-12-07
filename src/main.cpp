@@ -47,13 +47,10 @@ void setup(){
 }
 
 void loop(){
-  command = nullptr;
   command = reader.getCommand();
   Serial.write(command);
   if (strcmp(command,"")!=0){
     reader.parseCommand(command);
   }
-
-  
   delay(1000);
 }

@@ -7,35 +7,46 @@ const lmic_pinmap lmic_pins = {
   .dio = {LMIC_DIO0_PIN, LMIC_DIO1_PIN, LMIC_DIO2_PIN},
 };
 
+static u1_t _appeui[LORA_EUI_SIZE];
+static u1_t _deveui[LORA_EUI_SIZE];
+static u1_t _appkey[LORA_KEY_SIZE];
+
+static u1_t _appskey[LORA_KEY_SIZE];
+static u1_t _nwkskey[LORA_KEY_SIZE];
+static devaddr_t _devaddr;
+static u4_t _netid;
+
 static uint8_t mydata[] = "Hello, world!";
 
-void WrapLmicAT::os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
+void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
     buf[8-i] = _appeui[i-1];
   }
 }
 
-void WrapLmicAT::os_getDevEui (u1_t* buf) { // LMIC expects reverse from TTN
+void os_getDevEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
     buf[8-i] = _deveui[i-1];
   }
 }
 
-void WrapLmicAT::os_getDevKey (u1_t* buf) {  // no reverse here
+void os_getDevKey (u1_t* buf) {  // no reverse here
 	memcpy(buf, _appkey, 16);
-} 
+}
 
 void WrapLmicAT::macReset(int band){
     if(band == 868){
+        Serial.write("Resetted to 868\r\n");
         //set CFG_eu868 = 1
         os_init();
         LMIC_reset();
     }else if(band = 434){
+        Serial.println("got mac reset 434 command\r\n");
         //set CFG_eu434 = 1
-        //os_init();
+        os_init();
         LMIC_reset();
     }else{
-        //return invalid param
+        //return invalid_param
     }
 }
 
@@ -47,6 +58,7 @@ void WrapLmicAT::setAppEui(LoraParam appeui){
     	*(_appeui+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
 
+    Serial.write("appeui set\r\n");
     appEuiSet = true;
 }
 
@@ -57,6 +69,8 @@ void WrapLmicAT::setDevEui(LoraParam deveui){
     	tempStr[1] = *(deveui+(i*2)+1);
     	*(_deveui+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
+    Serial.write("deveui set\r\n");
+    devEuiSet = true;
 }
 
 void WrapLmicAT::setAppKey(LoraParam appkey){
@@ -66,6 +80,8 @@ void WrapLmicAT::setAppKey(LoraParam appkey){
     	tempStr[1] = *(appkey+(i*2)+1);
     	*(_appkey+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
+    Serial.write("appkey set\r\n");
+    appKeySet = true;
 }
 
 void WrapLmicAT::joinOtaa(){
@@ -115,27 +131,24 @@ void WrapLmicAT::onEvent (ev_t ev) {
         case EV_JOINED:
             Serial.println(F("EV_JOINED"));
             {
-              u4_t netid = 0;
-              devaddr_t devaddr = 0;
-              u1_t nwkKey[16];
-              u1_t artKey[16];
-              LMIC_getSessionKeys(&netid, &devaddr, nwkKey, artKey);
+       
+              LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey);
               Serial.print("netid: ");
-              Serial.println(netid, DEC);
+              Serial.println(_netid, DEC);
               Serial.print("devaddr: ");
-              Serial.println(devaddr, HEX);
+              Serial.println(_devaddr, HEX);
               Serial.print("AppSKey: ");
-              for (size_t i=0; i<sizeof(artKey); ++i) {
+              for (size_t i=0; i<sizeof(_appskey); ++i) {
                 if (i != 0)
                   Serial.print("-");
-                printHex2(artKey[i]);
+                printHex2(_appskey[i]);
               }
               Serial.println("");
               Serial.print("NwkSKey: ");
-              for (size_t i=0; i<sizeof(nwkKey); ++i) {
+              for (size_t i=0; i<sizeof(_nwkskey); ++i) {
                       if (i != 0)
                               Serial.print("-");
-                      printHex2(nwkKey[i]);
+                      printHex2(_nwkskey[i]);
               }
               Serial.println();
             }

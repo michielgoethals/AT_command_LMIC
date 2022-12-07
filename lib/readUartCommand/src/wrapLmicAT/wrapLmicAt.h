@@ -35,9 +35,6 @@ class WrapLmicAT{
         void setAppskey(LoraParam appskey);
         void joinABP(void);
 
-        void os_getArtEui (u1_t* buf);
-        void os_getDevEui (u1_t* buf);
-        void os_getDevKey (u1_t* buf);
         void macReset(int band);
 
         void printHex2(unsigned v);
@@ -46,21 +43,12 @@ class WrapLmicAT{
     
     private:
         //OTAA
-        static u1_t _appeui[LORA_EUI_SIZE];
-        static u1_t _deveui[LORA_EUI_SIZE];
-        static u1_t _appkey[LORA_KEY_SIZE];
 
         bool devEuiSet = false;
         bool appEuiSet = false;
         bool appKeySet = false;
 
         //ABP
-
-        static u1_t _appskey[LORA_KEY_SIZE];
-        static u1_t _nwkskey[LORA_KEY_SIZE];
-        static u4_t _devaddr;
-        static u4_t _netid;
-
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;

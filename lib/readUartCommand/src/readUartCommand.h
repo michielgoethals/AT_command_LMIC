@@ -11,6 +11,8 @@
 #define MACSETCHARS 8
 #define MACGETCHARS 8
 
+#define MAX_COMMAND_WORDS 8
+
 
 
 using namespace std;
