@@ -7,7 +7,7 @@
 #include <stdlib.h> 
 
 // LoRaWAN LMIC constants
-#define LMIC_NSS_PIN 				   6
+#define LMIC_NSS_PIN 				   10
 #define LMIC_RST_PIN 				   LMIC_UNUSED_PIN
 #define LMIC_DIO0_PIN 				   LMIC_UNUSED_PIN
 #define LMIC_DIO1_PIN 				   LMIC_UNUSED_PIN
@@ -34,7 +34,7 @@ class WrapLmicAT{
         void setNwskey(LoraParam nwskey);
         void setAppskey(LoraParam appskey);
         void joinABP(void);
-
+        
         void macReset(int band);
 
         void printHex2(unsigned v);
