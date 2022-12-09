@@ -1,8 +1,9 @@
 #pragma once
 
-#include "./LMIC/lmic.h"
+/* #include "./LMIC/lmic.h"
 #include "LMIC/hal/hal.h"
 #include <SPI.h>
+*/
 
 #include <stdlib.h> 
 
@@ -24,22 +25,66 @@ typedef const char * LoraParam;
 
 class WrapLmicAT{
     public:
-        //OTAA
+        //mac commands
+        void reset(int band);
+        void tx(bool cnf, int portno, char* data);
+        void joinOtaa();
+        void JoinABP();
+        void save();
+        void forceEnable();
+        void pause();
+        void resume();
+    
+    public:    
+        //mac set command
+        void setDevAddr(LoraParam devaddr); 
         void setDevEui(LoraParam deveui);
         void setAppEui(LoraParam appeui);
-        void setAppKey(LoraParam appkey);
-        void joinOtaa(void);
-        //ABP
-        void setDevAddr(LoraParam devaddr); 
-        void setNwskey(LoraParam nwskey);
-        void setAppskey(LoraParam appskey);
-        void joinABP(void);
-        
-        void macReset(int band);
+        void setNwkskey(LoraParam nwskey);
+        void setAppsKey(LoraParam appkey);
+        void setAppkey(LoraParam appskey);
+        void setPwridx(int pwrIndex); //0-5
+        void setDr(int dataRate); //0-8
+        void setAdr(bool on); 
+        void setBat(__uint8_t level);
+        void setRetX(int retX);
+        void setLinkChk(__uint16_t sec);
+        void setRxDelay1(__uint16_t rxDelay);
+        void setAr(bool on);
+        void setRx2(int dataRate, int frequency);
+        void setChFreq(int chID, int frequency);
+        void setChDutyCycle(int chID, int dutyCycle);
+        void setChDrRange(int chID, int minRange, int maxRange);
+        void setChStatus(int chIDn, bool on);
 
-        void printHex2(unsigned v);
-        void onEvent(ev_t ev);
-        void do_send(osjob_t* j);
+        //mac get commands
+        char* getDevAddr();
+        char* getDevEui();
+        char* getAppEui();
+        int getDr();
+        int getBand();
+        int getPwridx();
+        bool getAdr();
+        int getRetX();
+        int getRxDelay1(int rxdelay); 
+        int getRxDelay2(int rxdelay); 
+        bool getAr();
+        int getRx2(int band);
+        int getDcycleps();
+        int getMrgn();
+        int getGwnb();
+        char* getSatus();
+        int getChFreq(int chID);
+        int getChDcycle(int chID);
+        int getChdrrange(int chID);
+        bool getChStatus(int chID);
+       
+       
+    
+
+        //void printHex2(unsigned v);
+        //void onEvent(ev_t ev);
+        //void do_send(osjob_t* j);
     
     private:
         //OTAA
@@ -53,7 +98,7 @@ class WrapLmicAT{
         bool devAddrSet = false;
         bool appsKeySet = false;
 
-        static osjob_t sendjob;
+        //static osjob_t sendjob;
         const unsigned TX_INTERVAL = 60;
 };
 

@@ -1,11 +1,11 @@
 #include "wrapLmicAt.h"
 
-const lmic_pinmap lmic_pins = {
+/* const lmic_pinmap lmic_pins = {
   .nss = LMIC_NSS_PIN,
   .rxtx = LMIC_UNUSED_PIN,
   .rst = LMIC_RST_PIN,
   .dio = {LMIC_DIO0_PIN, LMIC_DIO1_PIN, LMIC_DIO2_PIN},
-};
+}; 
 
 static u1_t _appeui[LORA_EUI_SIZE];
 static u1_t _deveui[LORA_EUI_SIZE];
@@ -32,10 +32,10 @@ void os_getDevEui (u1_t* buf) { // LMIC expects reverse from TTN
 
 void os_getDevKey (u1_t* buf) {  // no reverse here
 	memcpy(buf, _appkey, 16);
-}
+} 
 
 void WrapLmicAT::macReset(int band){
-    if(band == 868){
+     if(band == 868){
         Serial.write("Resetted to 868\r\n");
         //set CFG_eu868 = 1
         os_init();
@@ -47,7 +47,7 @@ void WrapLmicAT::macReset(int band){
         LMIC_reset();
     }else{
         //return invalid_param
-    }
+    } 
 }
 
 void WrapLmicAT::setAppEui(LoraParam appeui){
@@ -89,7 +89,7 @@ void WrapLmicAT::joinOtaa(){
         LMIC_startJoining();
     }else{
         //return response
-    }
+    } 
 }
 
 void WrapLmicAT::joinABP(){
@@ -98,7 +98,7 @@ void WrapLmicAT::joinABP(){
     }else{
         //return response
     }
-}
+} 
 
 //helper functions
 
@@ -202,7 +202,6 @@ void WrapLmicAT::onEvent (ev_t ev) {
             Serial.println(F("EV_TXCANCELED"));
             break;
         case EV_RXSTART:
-            /* do not print anything -- it wrecks timing */
             break;
         case EV_JOIN_TXCOMPLETE:
             Serial.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
@@ -225,4 +224,4 @@ void WrapLmicAT::do_send(osjob_t* j){
         Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
-}
+} */

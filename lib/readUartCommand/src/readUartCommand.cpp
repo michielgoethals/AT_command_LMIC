@@ -63,13 +63,13 @@ void ReadUartCommand::parseMacCommand(char* command){
     }else if(strcmp(word,"get")== 0){
         parseMacGetCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "reset")==0){
-        wrapper.macReset(atoi(getRemainingPart(command,len)));
+        //wrapper.macReset(atoi(getRemainingPart(command,len)));
     }else if(strcmp(word, "join")==0){
         char * joinMethod = getRemainingPart(command,len);
         if(strcmp(joinMethod, "otaa\r\n")==0){
-            wrapper.joinOtaa();
+            //wrapper.joinOtaa();
         }else if(strcmp(joinMethod, "abp\r\n")==0){
-            wrapper.joinABP();
+            //wrapper.joinABP();
         }else{
             mySerial.write("invalid join method\r\n");
         }
@@ -86,11 +86,11 @@ void ReadUartCommand::parseMacSetCommand(char* command){
     int len = strlen(word)+1;
 
     if(strcmp(word, "appeui")==0){
-        wrapper.setAppEui((getRemainingPart(command,len)));
+        //wrapper.setAppEui((getRemainingPart(command,len)));
     }else if(strcmp(word, "deveui")==0){
-        wrapper.setDevEui((getRemainingPart(command,len)));
+        //wrapper.setDevEui((getRemainingPart(command,len)));
     }else if(strcmp(word, "appkey")==0){
-        wrapper.setAppKey((getRemainingPart(command,len)));
+        //wrapper.setAppKey((getRemainingPart(command,len)));
     }
 }
 
