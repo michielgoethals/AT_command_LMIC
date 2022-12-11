@@ -225,3 +225,160 @@ void WrapLmicAT::do_send(osjob_t* j){
     }
     // Next TX is scheduled after TX_COMPLETE event.
 } */
+
+void WrapLmicAT::tx(bool cnf, int portno, char* data){
+
+}
+
+void WrapLmicAT::save(){
+
+}
+
+void WrapLmicAT::forceEnable(){
+
+}
+
+void WrapLmicAT::pause(){
+
+}
+
+void WrapLmicAT::resume(){
+
+}
+
+void WrapLmicAT::setPwridx(int pwrIndex){
+
+}
+
+void WrapLmicAT::setDr(int dataRate){
+
+}
+
+void WrapLmicAT::setAdr(bool on){
+
+}
+
+void WrapLmicAT::setBat(__uint8_t level){
+
+}
+
+void WrapLmicAT::setRetX(int retX){
+
+}
+
+void WrapLmicAT::setLinkChk(__uint16_t sec){
+
+}
+
+void WrapLmicAT::setRxDelay1(__uint16_t rxDelay){
+
+}
+
+void WrapLmicAT::setAr(bool on){
+
+}
+
+void WrapLmicAT::setRx2(int dataRate, int frequency){
+
+}
+
+void WrapLmicAT::setChFreq(int chID, int frequency){
+
+}
+
+void WrapLmicAT::setChDutyCycle(int chID, int dutyCycle){
+
+}
+
+void WrapLmicAT::setChDrRange(int chID, int minRange, int maxRange){
+
+}
+
+void WrapLmicAT::setChStatus(int chIDn, bool on){
+
+}
+
+char* WrapLmicAT::getDevAddr(){
+    char * devaddr;
+    return devaddr;
+}
+
+char* WrapLmicAT::getDevEui(){
+    char * deveui;
+    os_getDevEui(deveui);
+    return deveui;
+}
+
+char* WrapLmicAT::getAppEui(){
+    char * appeui;
+    os_getArtEui(appeui);
+    return appeui;
+}
+
+int WrapLmicAT::getDr(){
+
+}
+
+int WrapLmicAT::getBand(){
+    
+}
+
+int WrapLmicAT::getPwridx(){
+
+}
+
+bool WrapLmicAT::getAdr(){
+
+}
+
+int WrapLmicAT::getRetX(){
+
+}
+
+int WrapLmicAT::getRxDelay1(int rxdelay){
+
+}
+
+int WrapLmicAT::getRxDelay2(int rxdelay){
+
+}
+
+bool WrapLmicAT::getAr(){
+
+}
+
+int WrapLmicAT::getRx2(int band){
+
+}
+
+int WrapLmicAT::getDcycleps(){
+
+}
+
+int WrapLmicAT::getMrgn(){
+
+}
+
+int WrapLmicAT::getGwnb(){
+
+}
+
+char* WrapLmicAT::getSatus(){
+
+}
+
+int WrapLmicAT::getChFreq(int chID){
+
+}
+
+int WrapLmicAT::getChDcycle(int chID){
+
+}
+
+int WrapLmicAT::getChdrrange(int chID){
+
+}
+
+bool WrapLmicAT::getChStatus(int chID){
+
+}
