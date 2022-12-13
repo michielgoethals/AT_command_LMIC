@@ -77,7 +77,6 @@ void WrapLmicAT::setAppKey(LoraParam appkey){
 
 }
 
-
 void WrapLmicAT::setPwridx(int pwrIndex){
 
 }
@@ -149,69 +148,86 @@ char* WrapLmicAT::getAppEui(){
 }
 
 int WrapLmicAT::getDr(){
-
+    int dr;
+    return dr;
 }
 
 int WrapLmicAT::getBand(){
-    
+    int band;
+    return band;
 }
 
 int WrapLmicAT::getPwridx(){
-
+    int pwr;
+    return pwr;
 }
 
 bool WrapLmicAT::getAdr(){
-
+    bool adr;
+    return adr;
 }
 
 int WrapLmicAT::getRetX(){
-
+    int retx;
+    return retx;
 }
 
 int WrapLmicAT::getRxDelay1(int rxdelay){
-
+    int rxdelay1;
+    return rxdelay1;
 }
 
 int WrapLmicAT::getRxDelay2(int rxdelay){
-
+    int rxdelay2;
+    return rxdelay2;
 }
 
 bool WrapLmicAT::getAr(){
-
+    bool ar; 
+    return ar;
 }
 
 int WrapLmicAT::getRx2(int band){
-
+    int rx2;
+    return rx2;
 }
 
 int WrapLmicAT::getDcycleps(){
-
+    int dcylce;
+    return dcylce;
 }
 
 int WrapLmicAT::getMrgn(){
-
+    int margin;
+    return margin;
 }
 
 int WrapLmicAT::getGwnb(){
-
-}
+    int gwnb;
+    return gwnb;
+}   
 
 char* WrapLmicAT::getSatus(){
-
+    char* status;
+    return status;
 }
 
 int WrapLmicAT::getChFreq(int chID){
-
+    int freq;
+    return freq;
 }
 
 int WrapLmicAT::getChDcycle(int chID){
-
+    int dcylce;
+    return dcylce;
 }
 
 int WrapLmicAT::getChdrrange(int chID){
-
+    int range;
+    return range;
 }
 
 bool WrapLmicAT::getChStatus(int chID){
-
+    bool status;
+    return status;
 }
