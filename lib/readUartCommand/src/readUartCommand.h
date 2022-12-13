@@ -8,13 +8,6 @@
 #define MAX_LENGTH_MESSAGE 127
 #define BAND868 868
 
-#define MACSETCHARS 8
-#define MACGETCHARS 8
-
-#define MAX_COMMAND_WORDS 8
-
-
-
 using namespace std;
 
 class ReadUartCommand{
@@ -25,21 +18,24 @@ class ReadUartCommand{
         void begin();
         char * getCommand();
         void parseCommand(char* command);
-        void sendReply(char * reply);
         void parseMacCommand(char* command);
-        void parseMacSetCommand(char* command);
+        void parseMacTxCommand(char* txCommand);
+        void parseJoinCommand(char* joinMethod);
+        void parseMacSetCommand(char* setCommand);
+        void parseMacSetChCommand(char* setChCommand);
         void parseMacGetCommand(char* command);
+        void parseMacGetChCommand(char* command);
         void parseSysCommand(char* command);
         void parseRadioCommand(char* command);
 
     private:
         char * getRemainingPart(char* arr, int offset);
+        char * getRemainingPartWithoutCRNL(char* arr, int offset);
+        void get2Params(char* params, char* param1, char* param2);
+        void get3Params(char* params, char* param1, char* param2, char* param3);
 
     private:
         SoftwareSerial mySerial;
         char * command = nullptr;
-        //WrapLmicAT wrapper;
-        //const char * list_of_mac_commands[] ={"reset", "set appkey", "set deveui", "set appeui","join otaa", "join abp"};
-        //const char * list_of_sys_commands[] ={""};
-        //const char * list_of_radio_commands[] ={""};mySerial.write("no command found\r\n");
+        WrapLmicAT wrapper;
 };

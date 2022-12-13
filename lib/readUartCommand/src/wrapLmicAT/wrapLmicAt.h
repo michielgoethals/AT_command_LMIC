@@ -2,8 +2,7 @@
 
 /* #include "./LMIC/lmic.h"
 #include "LMIC/hal/hal.h"
-#include <SPI.h>
-*/
+#include <SPI.h>  */
 
 #include <stdlib.h> 
 
@@ -19,9 +18,10 @@
 
 typedef const char * LoraParam;
 
-//typedef const char * responses_t;
-
-//char* resonses_t = ["ok", "invalid_param", "not_joined", "no_free_ch", "silent", "frame_counter_err_rejoin", "busy", "mac_paused", "invalid_data_len];
+typedef __uint8_t byte;
+typedef __uint8_t u1_t;
+typedef __uint32_t u4_t;
+typedef u4_t devaddr_t;
 
 class WrapLmicAT{
     public:
@@ -29,7 +29,7 @@ class WrapLmicAT{
         void reset(int band);
         void tx(bool cnf, int portno, char* data);
         void joinOtaa();
-        void JoinABP();
+        void joinABP();
         void save();
         void forceEnable();
         void pause();
@@ -41,21 +41,21 @@ class WrapLmicAT{
         void setDevEui(LoraParam deveui);
         void setAppEui(LoraParam appeui);
         void setNwkskey(LoraParam nwskey);
-        void setAppsKey(LoraParam appkey);
-        void setAppkey(LoraParam appskey);
+        void setAppsKey(LoraParam appskey);
+        void setAppKey(LoraParam appkey);
         void setPwridx(int pwrIndex); //0-5
         void setDr(int dataRate); //0-8
-        void setAdr(bool on); 
+        void setAdr(bool state); 
         void setBat(__uint8_t level);
         void setRetX(int retX);
         void setLinkChk(__uint16_t sec);
         void setRxDelay1(__uint16_t rxDelay);
-        void setAr(bool on);
+        void setAr(bool state);
         void setRx2(int dataRate, int frequency);
         void setChFreq(int chID, int frequency);
         void setChDutyCycle(int chID, int dutyCycle);
         void setChDrRange(int chID, int minRange, int maxRange);
-        void setChStatus(int chIDn, bool on);
+        void setChStatus(int chIDn, bool state);
 
         //mac get commands
         char* getDevAddr();
@@ -79,9 +79,6 @@ class WrapLmicAT{
         int getChdrrange(int chID);
         bool getChStatus(int chID);
        
-       
-    
-
         //void printHex2(unsigned v);
         //void onEvent(ev_t ev);
         //void do_send(osjob_t* j);
