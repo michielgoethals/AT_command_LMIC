@@ -31,8 +31,8 @@ class ReadUartCommand{
     private:
         char * getRemainingPart(char* arr, int offset);
         char * getRemainingPartWithoutCRNL(char* arr, int offset);
-        void get2Params(char* params, char* param1, char* param2);
-        void get3Params(char* params, char* param1, char* param2, char* param3);
+        void get2Params(char* params, char** param1, char** param2);
+        void get3Params(char* params, char** param1, char** param2, char** param3);
 
     private:
         SoftwareSerial mySerial;
