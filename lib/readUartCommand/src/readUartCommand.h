@@ -23,8 +23,8 @@ class ReadUartCommand{
         void parseJoinCommand(char* joinMethod);
         void parseMacSetCommand(char* setCommand);
         void parseMacSetChCommand(char* setChCommand);
-        void parseMacGetCommand(char* command);
-        void parseMacGetChCommand(char* command);
+        void parseMacGetCommand(char* getCommand);
+        void parseMacGetChCommand(char* getChcommand);
         void parseSysCommand(char* command);
         void parseRadioCommand(char* command);
 

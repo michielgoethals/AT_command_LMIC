@@ -1,13 +1,9 @@
 #include "wrapLmicAt.h"
 
-static u1_t _appeui[LORA_EUI_SIZE];
-static u1_t _deveui[LORA_EUI_SIZE];
-static u1_t _appkey[LORA_KEY_SIZE];
+static __uint8_t _appeui[LORA_EUI_SIZE];
+static __uint8_t _deveui[LORA_EUI_SIZE];
+static __uint8_t _appkey[LORA_KEY_SIZE];
 
-static u1_t _appskey[LORA_KEY_SIZE];
-static u1_t _nwkskey[LORA_KEY_SIZE];
-static devaddr_t _devaddr;
-static u4_t _netid;
 
 void WrapLmicAT::reset(int band){
     if(band == 868){
@@ -23,9 +19,11 @@ void WrapLmicAT::reset(int band){
     }else{
         //return invalid_param
     } 
+
+    //disable linkcheck
 }
 
-void WrapLmicAT::tx(bool cnf, int portno, char* data){
+void WrapLmicAT::tx(char* cnf, int portno, char* data){
 
 }
 
@@ -54,180 +52,177 @@ void WrapLmicAT::resume(){
 }
 
 void WrapLmicAT::setDevAddr(LoraParam devaddr){
-
+    devAddrSet = true;
 }
 
 void WrapLmicAT::setDevEui(LoraParam deveui){
+    char tempStr[3] = {0x00, 0x00, 0x00};
+    for(__uint8_t i = 0; i < LORA_EUI_SIZE; i++){
+    	tempStr[0] = *(deveui+(i*2));
+    	tempStr[1] = *(deveui+(i*2)+1);
+    	*(_deveui+i) = (__uint8_t)strtol(tempStr, NULL, 16);
+    }
 
+    devEuiSet = true;
 }
 
 void WrapLmicAT::setAppEui(LoraParam appeui){
+    char tempStr[3] = {0x00, 0x00, 0x00};
+    for(__uint8_t i = 0; i < LORA_EUI_SIZE; i++){
+    	tempStr[0] = *(appeui+(i*2));
+    	tempStr[1] = *(appeui+(i*2)+1);
+    	*(_appeui+i) = (__uint8_t)strtol(tempStr, NULL, 16);
+    }
 
+    appEuiSet = true;
 }
 
 void WrapLmicAT::setNwkskey(LoraParam nwskey){
-
+    nwksKeySet = true;
 }
 
 void WrapLmicAT::setAppsKey(LoraParam appskey){
-
+    appsKeySet = true;
 }
 
 void WrapLmicAT::setAppKey(LoraParam appkey){
-
+    char tempStr[3] = {0x00, 0x00, 0x00};
+    for(__uint8_t i = 0; i < LORA_KEY_SIZE; i++){
+    	tempStr[0] = *(appkey+(i*2));
+    	tempStr[1] = *(appkey+(i*2)+1);
+    	*(_appkey+i) = (__uint8_t)strtol(tempStr, NULL, 16);
+    }
+    
+    appKeySet = true;
 }
 
 void WrapLmicAT::setPwridx(int pwrIndex){
-
+    this->pwrIndex = pwrIndex;
 }
 
-void WrapLmicAT::setDr(int dataRate){
-
+void WrapLmicAT::setDr(int dr){
+    this->dr = dr;
 }
 
-void WrapLmicAT::setAdr(bool state){
-
+void WrapLmicAT::setAdr(char* state){
+    //this->adr_state = state;
 }
 
-void WrapLmicAT::setBat(__uint8_t level){
-
+void WrapLmicAT::setBat(int level){
+    //set battery in lmic
 }
 
 void WrapLmicAT::setRetX(int retX){
-
+    this->retX = retX;
 }
 
-void WrapLmicAT::setLinkChk(__uint16_t sec){
-
+void WrapLmicAT::setLinkChk(int sec){
+    //lmic function
 }
 
-void WrapLmicAT::setRxDelay1(__uint16_t rxDelay){
-
+void WrapLmicAT::setRxDelay1(int rxdelay1){
+    this->rxdelay1 = rxdelay1;
 }
 
-void WrapLmicAT::setAr(bool state){
-
+void WrapLmicAT::setAr(char* state){
+    //this->ar_state = state;
 }
 
 void WrapLmicAT::setRx2(int dataRate, int frequency){
-
+    //lmic function
 }
 
 void WrapLmicAT::setChFreq(int chID, int frequency){
-
+    //todo
 }
 
 void WrapLmicAT::setChDutyCycle(int chID, int dutyCycle){
-
+    //todo
 }
 
 void WrapLmicAT::setChDrRange(int chID, int minRange, int maxRange){
-
+    //todo
 }
 
 void WrapLmicAT::setChStatus(int chIDn, bool state){
-
+    //todo
 }
 
 char* WrapLmicAT::getDevAddr(){
-    char * devaddr;
     //os_getDevKey(devaddr);
-    return devaddr;
+    //return "0";
 }
 
 char* WrapLmicAT::getDevEui(){
-    char * deveui;
     //os_getDevEui(deveui);
-    return deveui;
+    //return "0";
 }
 
 char* WrapLmicAT::getAppEui(){
-    char * appeui;
     //os_getArtEui(appeui);
-    return appeui;
+    return (char*)_appeui;
 }
 
 int WrapLmicAT::getDr(){
-    int dr;
     return dr;
 }
 
 int WrapLmicAT::getBand(){
-    int band;
     return band;
 }
 
 int WrapLmicAT::getPwridx(){
-    int pwr;
-    return pwr;
+    return pwrIndex;
 }
 
-bool WrapLmicAT::getAdr(){
-    bool adr;
-    return adr;
+char* WrapLmicAT::getAdr(){
+    //return adr_state;
 }
 
 int WrapLmicAT::getRetX(){
-    int retx;
-    return retx;
+    return retX;
 }
 
-int WrapLmicAT::getRxDelay1(int rxdelay){
-    int rxdelay1;
+int WrapLmicAT::getRxDelay1(){
     return rxdelay1;
 }
 
-int WrapLmicAT::getRxDelay2(int rxdelay){
-    int rxdelay2;
+int WrapLmicAT::getRxDelay2(){
     return rxdelay2;
 }
 
-bool WrapLmicAT::getAr(){
-    bool ar; 
-    return ar;
+char* WrapLmicAT::getAr(){
+    //return ar_state;
 }
 
 int WrapLmicAT::getRx2(int band){
-    int rx2;
-    return rx2;
+    //return rx2;
 }
 
 int WrapLmicAT::getDcycleps(){
-    int dcylce;
-    return dcylce;
+    return dcylceps;
 }
 
 int WrapLmicAT::getMrgn(){
-    int margin;
-    return margin;
+    return mrgn;
 }
 
 int WrapLmicAT::getGwnb(){
-    int gwnb;
     return gwnb;
 }   
 
 char* WrapLmicAT::getSatus(){
-    char* status;
-    return status;
+    return (char*)status;
 }
 
-int WrapLmicAT::getChFreq(int chID){
-    int freq;
-    return freq;
+void WrapLmicAT::getChFreq(int chID){
 }
 
-int WrapLmicAT::getChDcycle(int chID){
-    int dcylce;
-    return dcylce;
+void WrapLmicAT::getChDcycle(int chID){
 }
 
-int WrapLmicAT::getChdrrange(int chID){
-    int range;
-    return range;
+void WrapLmicAT::getChdrrange(int chID){
 }
 
-bool WrapLmicAT::getChStatus(int chID){
-    bool status;
-    return status;
+void WrapLmicAT::getChStatus(int chID){
 }
