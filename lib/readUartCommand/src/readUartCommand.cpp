@@ -13,10 +13,9 @@ char * ReadUartCommand::getCommand(){
     int index = 0;
 
     while(mySerial.available() > 0){
-        buffer[index]= mySerial.read();
+        buffer[index]= tolower(mySerial.read());
         index++;
     }  
-
     command = new char[index];
     strncpy(command,buffer,index+1);
     command[index] = '\0';

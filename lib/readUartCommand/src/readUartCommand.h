@@ -4,6 +4,7 @@
 #include <SoftwareSerial.h>
 #include "wrapLmicAT/wrapLmicAt.h"
 #include <cstring>
+#include <cctype>
 
 #define MAX_LENGTH_MESSAGE 127
 #define BAND868 868
