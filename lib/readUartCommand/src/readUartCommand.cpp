@@ -49,11 +49,11 @@ void ReadUartCommand::parseMacCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "reset")==0){
-        wrapper.reset(atoi(getRemainingPartWithoutCRNL(command,len)));
+        wrapper.reset(atoi(getRemainingPart(command,len)));
     }else if(strcmp(word, "tx")==0){
         parseMacTxCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "join")==0){
-        parseJoinCommand(getRemainingPartWithoutCRNL(command, len));
+        parseJoinCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"save\r\n")== 0){
         wrapper.save();
     }else if(strcmp(word,"forceENABLE\r\n")== 0){
@@ -84,9 +84,9 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
-        if(strcmp(joinMethod, "otaa")==0){
+        if(strcmp(joinMethod, "otaa\r\n")==0){
             wrapper.joinOtaa();
-        }else if(strcmp(joinMethod, "abp")==0){
+        }else if(strcmp(joinMethod, "abp\r\n")==0){
             wrapper.joinABP();
         }
 }
@@ -167,7 +167,7 @@ void ReadUartCommand::parseMacSetChCommand(char* setChCommand){
 
 void ReadUartCommand::parseMacGetCommand(char* getCommand){
     char * word;
-    word = getRemainingPartWithoutCRNL(getCommand,0);
+    word = getRemainingPart(getCommand,0);
     int len = strlen(word)+1;
 
     if(strcmp(word,"devaddr")==0){
@@ -222,18 +222,10 @@ char* ReadUartCommand::getRemainingPart(char* arr, int offset){
     return buff;
 }
 
-char* ReadUartCommand::getRemainingPartWithoutCRNL(char* arr, int offset){
-    char* arrCRNL = strtok(arr, "\r");
-    char* buff = &arrCRNL[offset];
-
-    return buff;
-    delete[] arrCRNL;
-}
-
 void ReadUartCommand::get2Params(char* params, char** param1, char** param2){
     *param1 = strtok(params, " ");
     int lenParam1 = strlen(*param1)+1;
-    *param2 = getRemainingPartWithoutCRNL(params, lenParam1);
+    *param2 = getRemainingPart(params, lenParam1);
     return;
 }
 

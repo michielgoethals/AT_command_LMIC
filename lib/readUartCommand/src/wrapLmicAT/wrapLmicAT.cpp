@@ -15,6 +15,8 @@ static u1_t _nwkskey[LORA_KEY_SIZE];
 static u1_t _appskey[LORA_KEY_SIZE];
 static u4_t _devaddr;
 
+static uint8_t mydata[] = "Hello, world!";
+
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
     buf[8-i] = _appeui[i-1];
@@ -35,7 +37,7 @@ void WrapLmicAT::reset(int band){
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
-        //os_init();
+        os_init();
         LMIC_reset();
         LMIC_setLinkCheckMode(0);
         LMIC_setAdrMode(0);
@@ -60,7 +62,10 @@ void WrapLmicAT::tx(char* cnf, int portno, char* data){
 
 void WrapLmicAT::joinOtaa(){
     if(devEuiSet && appEuiSet && appKeySet){
+        Serial.write("Trying to join OTAA\r\n");
+        //do_send(&sendjob);
         LMIC_startJoining();
+        os_runloop();
     }
 }
 
@@ -92,7 +97,6 @@ void WrapLmicAT::setDevAddr(LoraParam devaddr){
 }
 
 void WrapLmicAT::setDevEui(LoraParam deveui){
-    char tempStr[3] = {0x00, 0x00, 0x00};
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
     	tempStr[0] = *(deveui+(i*2));
     	tempStr[1] = *(deveui+(i*2)+1);
@@ -102,7 +106,6 @@ void WrapLmicAT::setDevEui(LoraParam deveui){
 }
 
 void WrapLmicAT::setAppEui(LoraParam appeui){
-    char tempStr[3] = {0x00, 0x00, 0x00};
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
     	tempStr[0] = *(appeui+(i*2));
     	tempStr[1] = *(appeui+(i*2)+1);
@@ -112,7 +115,6 @@ void WrapLmicAT::setAppEui(LoraParam appeui){
 }
 
 void WrapLmicAT::setNwkskey(LoraParam nwkskey){
-    char tempStr[3] = {0x00, 0x00, 0x00};
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(nwkskey+(i*2));
     	tempStr[1] = *(nwkskey+(i*2)+1);
@@ -122,7 +124,6 @@ void WrapLmicAT::setNwkskey(LoraParam nwkskey){
 }
 
 void WrapLmicAT::setAppsKey(LoraParam appskey){
-    char tempStr[3] = {0x00, 0x00, 0x00};
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appskey+(i*2));
     	tempStr[1] = *(appskey+(i*2)+1);
@@ -132,7 +133,6 @@ void WrapLmicAT::setAppsKey(LoraParam appskey){
 }
 
 void WrapLmicAT::setAppKey(LoraParam appkey){
-    char tempStr[3] = {0x00, 0x00, 0x00};
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appkey+(i*2));
     	tempStr[1] = *(appkey+(i*2)+1);
@@ -154,7 +154,7 @@ void WrapLmicAT::setAdr(char* state){
 }
 
 void WrapLmicAT::setBat(int level){
-    //set battery in lmic
+    LMIC_setBatteryLevel(level);
 }
 
 void WrapLmicAT::setRetX(int retX){

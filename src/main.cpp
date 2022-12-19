@@ -11,14 +11,14 @@ char * command = nullptr;
 
 void setup(){
   pinMode(LED, OUTPUT);
-  //Serial.begin(19200);
-  //Serial.println("Startup");
+  Serial.begin(19200);
+  Serial.println("Startup");
   reader.begin(BAUDRATE);
 }
 
 void loop(){
   command = reader.getCommand();
-  //Serial.write(command);
+  Serial.write(command);
   if (strcmp(command,"")!=0){
     reader.parseCommand(command);
   }

@@ -75,10 +75,6 @@ class WrapLmicAT{
         void getChdrrange(int chID);
         void getChStatus(int chID);
        
-        //void printHex2(unsigned v);
-        //void onEvent(ev_t ev);
-        //void do_send(osjob_t* j);
-    
     private:
         //OTAA
 
@@ -106,8 +102,9 @@ class WrapLmicAT{
         int gwnb = 0;
         int status = 0x0000;
 
-        static osjob_t sendjob;
         const unsigned TX_INTERVAL = 60;
+        
+        char tempStr[3] = {0x00, 0x00, 0x00};
 };
 
 
