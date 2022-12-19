@@ -1,17 +1,18 @@
 #pragma once
 
-/* #include "./LMIC/lmic.h"
-#include "LMIC/hal/hal.h"
-#include <SPI.h>  */
+#include <lmic.h>
+#include <hal/hal.h>
+#include <SPI.h>
 
 #include <stdlib.h> 
+#include <cstring>
 
 // LoRaWAN LMIC constants
 #define LMIC_NSS_PIN 				   10
-#define LMIC_RST_PIN 				   LMIC_UNUSED_PIN
-#define LMIC_DIO0_PIN 				   LMIC_UNUSED_PIN
-#define LMIC_DIO1_PIN 				   LMIC_UNUSED_PIN
-#define LMIC_DIO2_PIN 				   LMIC_UNUSED_PIN
+#define LMIC_RST_PIN 				   5
+#define LMIC_DIO0_PIN 				   2
+#define LMIC_DIO1_PIN 				   3
+#define LMIC_DIO2_PIN 				   4
 
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16
@@ -86,10 +87,11 @@ class WrapLmicAT{
         bool appKeySet = false;
 
         //ABP
+     
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;
-
+        
         int dr = 5;
         int band = 868;
         int pwrIndex = 1;
@@ -104,9 +106,7 @@ class WrapLmicAT{
         int gwnb = 0;
         int status = 0x0000;
 
-        int linkchk = 0;
-
-        //static osjob_t sendjob;
+        static osjob_t sendjob;
         const unsigned TX_INTERVAL = 60;
 };
 

@@ -27,6 +27,7 @@ class ReadUartCommand{
         void parseMacGetChCommand(char* getChcommand);
         void parseSysCommand(char* command);
         void parseRadioCommand(char* command);
+        void sendResponse(char* response);
 
     private:
         char * getRemainingPart(char* arr, int offset);

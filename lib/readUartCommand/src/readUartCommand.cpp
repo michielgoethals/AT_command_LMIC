@@ -41,7 +41,6 @@ void ReadUartCommand::parseCommand(char* command){
     }else{
         mySerial.write("no command found\r\n");
     }
-    //delete[] word;
 }
 
 void ReadUartCommand::parseMacCommand(char* command){
@@ -67,8 +66,9 @@ void ReadUartCommand::parseMacCommand(char* command){
         parseMacSetCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"get")== 0){
         parseMacGetCommand(getRemainingPart(command, len));
+    }else if(strcmp(word,"test\r\n")== 0){
+        mySerial.write("test communication ok \r\n");
     }
-    //delete[] word;
 }
 
 void ReadUartCommand::parseMacTxCommand(char* txCommand){
@@ -211,6 +211,10 @@ void ReadUartCommand::parseSysCommand(char* command){
 
 void ReadUartCommand::parseRadioCommand(char* command){
     
+}
+
+void ReadUartCommand::sendResponse(char* response){
+    mySerial.write(response);
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
