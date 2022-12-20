@@ -15,7 +15,7 @@ static u1_t _nwkskey[LORA_KEY_SIZE];
 static u1_t _appskey[LORA_KEY_SIZE];
 static u4_t _devaddr;
 
-static uint8_t mydata[] = "Hello, world!";
+bool joined = false;
 
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
@@ -33,7 +33,11 @@ void os_getDevKey (u1_t* buf) {  // no reverse here
 	memcpy(buf, _appkey, 16);
 } 
 
-void WrapLmicAT::reset(int band){
+void WrapLmicAT::begin(){
+
+}
+
+void WrapLmicAT::reset(u1_t band){
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
@@ -52,11 +56,19 @@ void WrapLmicAT::reset(int band){
     } 
 }
 
-void WrapLmicAT::tx(char* cnf, int portno, char* data){
-    if(strcmp(cnf, "cnf")==0){
-        LMIC_setTxData2(portno, (u1_t*)data, sizeof(data)-1, 0);
-    }else if (strcmp(cnf, "uncnf")==0){
-        LMIC_setTxData2(portno, (u1_t*)data, sizeof(data)-1, 1);
+void WrapLmicAT::tx(char* cnf, u1_t portno, char* data){
+    u1_t* datatx = (u1_t*)data;
+
+    if (LMIC_queryTxReady()){
+        Serial.println(F("cannot transmit busy")); 
+    }else{
+        if(joined == true){
+            if(strcmp(cnf, "cnf\r\n")==0){
+                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1);
+            }else if (strcmp(cnf, "uncnf\r\n")==0){
+                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0);
+            }
+        }
     }
 }
 
@@ -84,11 +96,11 @@ void WrapLmicAT::forceEnable(){
 }
 
 void WrapLmicAT::pause(){
-
+    LMIC_shutdown();
 }
 
 void WrapLmicAT::resume(){
-
+    //LMIC_reset()
 }
 
 void WrapLmicAT::setDevAddr(LoraParam devaddr){
@@ -141,131 +153,212 @@ void WrapLmicAT::setAppKey(LoraParam appkey){
     appKeySet = true;
 }
 
-void WrapLmicAT::setPwridx(int pwrIndex){
-    this->pwrIndex = pwrIndex;
+void WrapLmicAT::setPwridx(u1_t pwrIndex){
+    if(band == 868){
+        switch (pwrIndex)
+        {
+        case 1:
+            LMIC.txpow = 14;
+            break;
+        case 2:
+            LMIC.txpow = 14;
+            break;
+        case 3:
+            LMIC.txpow = 14;
+            break;
+        case 4:
+            LMIC.txpow = 14;
+            break;
+        case 5:
+            LMIC.txpow = 14;
+            break;   
+        default:
+            //return invalid param
+            break;
+        }
+    }else if(band == 434){
+        switch(pwrIndex)
+        {
+        case 0:
+            LMIC.txpow = 0;
+            break;
+        case 1:
+            LMIC.txpow = 14;
+            break;
+        case 2:
+            LMIC.txpow = 14;
+            break;
+        case 3:
+            LMIC.txpow = 14;
+            break;
+        case 4:
+            LMIC.txpow = 14;
+            break;
+        case 5:
+            LMIC.txpow = 14;
+            break;   
+        default:
+            //return invalid param
+            break;
+        }
+    }
 }
 
-void WrapLmicAT::setDr(int dr){
-    this->dr = dr;
+void WrapLmicAT::setDr(u1_t dr){
+    LMIC.datarate = dr;
 }
 
 void WrapLmicAT::setAdr(char* state){
-    //this->adr_state = state;
+    if(strcmp(state, "on\r\n")==0){
+        LMIC_setAdrMode(1);
+    }else if(strcmp(state, "on\r\n")==0){
+        LMIC_setAdrMode(0);
+    }
 }
 
-void WrapLmicAT::setBat(int level){
+void WrapLmicAT::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
 }
 
-void WrapLmicAT::setRetX(int retX){
-    this->retX = retX;
+void WrapLmicAT::setRetX(u1_t retX){
+    LMIC.upRepeat = retX;
 }
 
-void WrapLmicAT::setLinkChk(int sec){
-    //lmic function
+void WrapLmicAT::setLinkChk(u2_t sec){
+    if(sec ==0){
+        LMIC_setLinkCheckMode(0);
+    }else if(sec>0 && sec<65535){
+        LMIC_setLinkCheckMode(1);
+        LMIC.adrAckReq = sec;
+    }
 }
 
-void WrapLmicAT::setRxDelay1(int rxdelay1){
-    this->rxdelay1 = rxdelay1;
+void WrapLmicAT::setRxDelay1(u2_t rxdelay1){
+    //rxdelay1 is in ms while LMIC.rxDelay in sec
+    LMIC.rxDelay = rxdelay1/1000;
 }
 
 void WrapLmicAT::setAr(char* state){
-    //this->ar_state = state;
 }
 
-void WrapLmicAT::setRx2(int dataRate, int frequency){
+void WrapLmicAT::setRx2(u1_t dataRate, u4_t frequency){
     //lmic function
 }
 
-void WrapLmicAT::setChFreq(int chID, int frequency){
+void WrapLmicAT::setChFreq(u1_t chID, u4_t frequency){
+    LMIC.channelFreq[chID] = frequency;
+}
+
+void WrapLmicAT::setChDutyCycle(u1_t chID, u2_t dutyCycle){
     //todo
 }
 
-void WrapLmicAT::setChDutyCycle(int chID, int dutyCycle){
+void WrapLmicAT::setChDrRange(u1_t chID, int minRange, int maxRange){
     //todo
 }
 
-void WrapLmicAT::setChDrRange(int chID, int minRange, int maxRange){
-    //todo
-}
-
-void WrapLmicAT::setChStatus(int chIDn, bool state){
-    //todo
+void WrapLmicAT::setChStatus(u1_t chID, char* enable){
+    if(strcmp(enable, "on/r/n")==0){
+        LMIC_enableChannel(chID);
+    }else if(strcmp(enable, "off/r/n")==0){
+        LMIC_disableChannel(chID);
+    }else{
+        //invalid param
+    }
 }
 
 char* WrapLmicAT::getDevAddr(){
+    return (char*)LMIC.devaddr;
 }
 
 char* WrapLmicAT::getDevEui(){
- 
+    u1_t* deveui;
+    os_getDevEui(deveui);
+    return (char*)deveui;
 }
 
 char* WrapLmicAT::getAppEui(){
-
+    return (char*)LMIC.artKey;
 }
 
-int WrapLmicAT::getDr(){
-    return dr;
+u1_t WrapLmicAT::getDr(){
+    return LMIC.datarate;
 }
 
-int WrapLmicAT::getBand(){
+u2_t WrapLmicAT::getBand(){
     return band;
 }
 
-int WrapLmicAT::getPwridx(){
-    return pwrIndex;
+u1_t WrapLmicAT::getPwridx(){
+    switch (LMIC.txpow)
+    {
+    case 14:
+        return 1;
+        break;
+    
+    default:
+        break;
+    }
 }
 
 char* WrapLmicAT::getAdr(){
-    //return adr_state;
+    if(LMIC.adrEnabled==1){
+        return "on\r\n";
+    }else if(LMIC.adrEnabled==0){
+        return "off\r\n";
+    }
 }
 
-int WrapLmicAT::getRetX(){
-    return retX;
+u1_t WrapLmicAT::getRetX(){
+    return LMIC.upRepeat;
 }
 
-int WrapLmicAT::getRxDelay1(){
-    return rxdelay1;
+u2_t WrapLmicAT::getRxDelay1(){
+    return LMIC.rxDelay*1000;
 }
 
 int WrapLmicAT::getRxDelay2(){
     return rxdelay2;
 }
 
-char* WrapLmicAT::getAr(){
-    //return ar_state;
+void WrapLmicAT::getAr(){
 }
 
-int WrapLmicAT::getRx2(int band){
-    //return rx2;
+char * WrapLmicAT::getRx2(u1_t band){
+    u1_t dataRate2ReceiveWindow = LMIC.dn2Dr;
+    u4_t freq2ReceiveWindow = LMIC.dn2Freq;
 }
 
-int WrapLmicAT::getDcycleps(){
-    return dcylceps;
+u2_t WrapLmicAT::getDcycleps(){
+    return LMIC.globalDutyRate;
 }
 
-int WrapLmicAT::getMrgn(){
-    return mrgn;
+u1_t WrapLmicAT::getMrgn(){
+    return LMIC.margin;
 }
 
-int WrapLmicAT::getGwnb(){
+u1_t WrapLmicAT::getGwnb(){
     return gwnb;
 }   
 
-char* WrapLmicAT::getSatus(){
-    return (char*)status;
+void WrapLmicAT::getSatus(){
 }
 
-void WrapLmicAT::getChFreq(int chID){
+u4_t WrapLmicAT::getChFreq(u1_t chID){
+    return LMIC.channelFreq[chID];
 }
 
-void WrapLmicAT::getChDcycle(int chID){
+u2_t WrapLmicAT::getChDcycle(u1_t chID){
+    
+    //LMIC.channe
 }
 
-void WrapLmicAT::getChdrrange(int chID){
+void WrapLmicAT::getChdrrange(u1_t chID){
+    //u2_t drRange = LMIC.channelDrMap[chID]
 }
 
-void WrapLmicAT::getChStatus(int chID){
+void WrapLmicAT::getChStatus(u1_t chID){
+    //LMIC_enableChannel
 }
 
 void onEvent (ev_t ev) {
@@ -289,6 +382,7 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOINED:
             Serial.println(F("EV_JOINED"));
+            joined = true;
             break;
         /*
         || This event is defined but not used in the code. No

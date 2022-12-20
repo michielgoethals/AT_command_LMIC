@@ -8,10 +8,11 @@
 ReadUartCommand reader(RX, TX); 
 
 char * command = nullptr;
+bool toggle = false;
 
 void setup(){
   pinMode(LED, OUTPUT);
-  Serial.begin(19200);
+  Serial.begin(9600);
   Serial.println("Startup");
   reader.begin(BAUDRATE);
 }
@@ -22,11 +23,10 @@ void loop(){
   if (strcmp(command,"")!=0){
     reader.parseCommand(command);
   }
-  if(digitalRead(LED)==HIGH){
-    digitalWrite(LED,LOW);
-  }else{
-    digitalWrite(LED,HIGH);
-  }
-  delay(1000);
+
+  delay(500);
+  digitalWrite(LED,!toggle);
+  toggle=!toggle;
   delete[] command;
+  
 }

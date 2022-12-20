@@ -6,6 +6,7 @@ ReadUartCommand::ReadUartCommand(int rx, int tx): mySerial(rx,tx){
 void ReadUartCommand::begin(int baudrate){
     mySerial.begin(baudrate);
     mySerial.write("Serial started @STM\r\n");
+    wrapper.begin();
 }
 
 char * ReadUartCommand::getCommand(){
@@ -190,7 +191,7 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     }else if(strcmp(word, "rxdelay2")==0){
         mySerial.println(wrapper.getRxDelay2());
     }else if(strcmp(word, "ar")==0){
-        mySerial.println(wrapper.getAr());
+        //mySerial.println(wrapper.getAr());
     }else if(strcmp(word, "rx2")==0){
         mySerial.println(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
     }else if(strcmp(word, "dcycleps")==0){
@@ -200,7 +201,7 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     }else if(strcmp(word, "gwnb")==0){
         mySerial.println(wrapper.getGwnb());
     }else if(strcmp(word, "status")==0){
-        mySerial.println(wrapper.getSatus());
+        //mySerial.println(wrapper.getSatus());
     }
 }
 
