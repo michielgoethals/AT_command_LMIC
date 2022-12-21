@@ -237,7 +237,6 @@ void ReadUartCommand::get3Params(char* params, char** param1, char** param2, cha
 
     get2Params(buff, param2, param3);
     return;
-    delete[] buff;
     }
 
 

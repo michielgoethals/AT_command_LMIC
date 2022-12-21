@@ -260,10 +260,17 @@ char* WrapLmicAT::getDevAddr(){
 }
 
 char* WrapLmicAT::getDevEui(){
-    u1_t* deveui;
-    os_getDevEui(deveui);
-    Serial.write(*deveui);
-    return (char*)deveui;
+    char buffer[LORA_EUI_SIZE];
+    char* deveui = (char*)malloc(LORA_EUI_SIZE*2 + 1);
+
+    for (u1_t i = 0; i < LORA_EUI_SIZE; i++){
+        sprintf(buffer, "%X", _deveui[i]);
+        strcat(deveui, buffer);
+    }
+
+    return deveui;
+
+    free(deveui);
 }
 
 char* WrapLmicAT::getAppEui(){
@@ -350,6 +357,7 @@ void WrapLmicAT::getSatus(){
 }
 
 u4_t WrapLmicAT::getChFreq(u1_t chID){
+    Serial.write(chID);
     return LMIC.channelFreq[chID];
 }
 
@@ -363,6 +371,14 @@ void WrapLmicAT::getChdrrange(u1_t chID){
 
 void WrapLmicAT::getChStatus(u1_t chID){
     //LMIC_enableChannel
+}
+
+
+void printHex2(unsigned v) {
+    v &= 0xff;
+    if (v < 16)
+        Serial.print('0');
+    Serial.print(v, HEX);
 }
 
 void onEvent (ev_t ev) {
@@ -386,7 +402,7 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOINED:
             Serial.println(F("EV_JOINED"));
-            joined = true;
+            joined = true;             
             break;
         case EV_JOIN_FAILED:
             Serial.println(F("EV_JOIN_FAILED"));
