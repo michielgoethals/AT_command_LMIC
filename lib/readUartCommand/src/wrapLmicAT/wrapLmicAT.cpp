@@ -16,7 +16,7 @@ static u1_t _appskey[LORA_KEY_SIZE];
 static u4_t _devaddr;
 
 bool joined = false;
-bool packetTX = false;
+bool packetTx = false;
 
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
@@ -403,7 +403,7 @@ void onEvent (ev_t ev) {
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
             }
-            packetTX = false;
+            packetTx = false;
             break;
         case EV_LOST_TSYNC:
             Serial.println(F("EV_LOST_TSYNC"));
@@ -423,7 +423,6 @@ void onEvent (ev_t ev) {
             break;
         case EV_TXSTART:
             Serial.println(F("EV_TXSTART"));
-            uncnfpacket = false;
             break;
         case EV_TXCANCELED:
             Serial.println(F("EV_TXCANCELED"));
