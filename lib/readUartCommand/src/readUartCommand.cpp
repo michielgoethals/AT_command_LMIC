@@ -170,37 +170,37 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     word = getRemainingPart(getCommand,0);
     int len = strlen(word)+1;
 
-    if(strcmp(word,"devaddr")==0){
+    if(strcmp(word,"devaddr\r\n")==0){
         mySerial.println(wrapper.getDevAddr());
-    }else if(strcmp(word, "deveui")==0){
+    }else if(strcmp(word, "deveui\r\n")==0){
         mySerial.println(wrapper.getDevEui());
-    }else if(strcmp(word, "appeui")==0){
+    }else if(strcmp(word, "appeui\r\n")==0){
         mySerial.println(wrapper.getAppEui());
-    }else if(strcmp(word, "dr")==0){
+    }else if(strcmp(word, "dr\r\n")==0){
         mySerial.println(wrapper.getDr());
-    }else if(strcmp(word, "band")==0){
+    }else if(strcmp(word, "band\r\n")==0){
         mySerial.println(wrapper.getBand());
-    }else if(strcmp(word, "pwridx")==0){
+    }else if(strcmp(word, "pwridx\r\n")==0){
         mySerial.println(wrapper.getPwridx());
-    }else if(strcmp(word, "adr")==0){
+    }else if(strcmp(word, "adr\r\n")==0){
         mySerial.println(wrapper.getAdr());
-    }else if(strcmp(word, "retx")==0){
+    }else if(strcmp(word, "retx\r\n")==0){
         mySerial.println(wrapper.getRetX());
-    }else if(strcmp(word, "rxdelay1")==0){
+    }else if(strcmp(word, "rxdelay1\r\n")==0){
         mySerial.println(wrapper.getRxDelay1());
-    }else if(strcmp(word, "rxdelay2")==0){
+    }else if(strcmp(word, "rxdelay2\r\n")==0){
         mySerial.println(wrapper.getRxDelay2());
-    }else if(strcmp(word, "ar")==0){
+    }else if(strcmp(word, "ar\r\n")==0){
         //mySerial.println(wrapper.getAr());
-    }else if(strcmp(word, "rx2")==0){
+    }else if(strcmp(word, "rx2\r\n")==0){
         mySerial.println(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
-    }else if(strcmp(word, "dcycleps")==0){
+    }else if(strcmp(word, "dcycleps\r\n")==0){
         mySerial.println(wrapper.getDcycleps());
-    }else if(strcmp(word, "mrgn")==0){
+    }else if(strcmp(word, "mrgn\r\n")==0){
         mySerial.println(wrapper.getMrgn());
-    }else if(strcmp(word, "gwnb")==0){
+    }else if(strcmp(word, "gwnb\r\n")==0){
         mySerial.println(wrapper.getGwnb());
-    }else if(strcmp(word, "status")==0){
+    }else if(strcmp(word, "status\r\n")==0){
         //mySerial.println(wrapper.getSatus());
     }
 }

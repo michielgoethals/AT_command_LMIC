@@ -16,6 +16,7 @@ static u1_t _appskey[LORA_KEY_SIZE];
 static u4_t _devaddr;
 
 bool joined = false;
+bool packetTX = false;
 
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
@@ -34,23 +35,24 @@ void os_getDevKey (u1_t* buf) {  // no reverse here
 } 
 
 void WrapLmicAT::begin(){
-
+    os_init();
+    LMIC_reset();
+    LMIC_setDrTxpow(dr,KEEP_TXPOW); //default txpow is 16dBm
+    setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
+    setRetX(retX);
+    //LMIC_setLinkCheckMode(0);
+    //LMIC_setAdrMode(0);
 }
 
-void WrapLmicAT::reset(u1_t band){
+void WrapLmicAT::reset(u2_t band){
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
-        os_init();
-        LMIC_reset();
-        LMIC_setLinkCheckMode(0);
-        LMIC_setAdrMode(0);
+        begin();
     }else if(band == 434){
         this->band = band;
-        //Serial.println("Resetted to 434\r\n");
-        //set CFG_eu434 = 1
-        //os_init();
-        //LMIC_reset();
+        Serial.println("Resetted to 434\r\n");
+        begin();
     }else{
         //return invalid_param
     } 
@@ -59,17 +61,22 @@ void WrapLmicAT::reset(u1_t band){
 void WrapLmicAT::tx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
 
-    if (LMIC_queryTxReady()){
+    if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("cannot transmit busy")); 
     }else{
         if(joined == true){
-            if(strcmp(cnf, "cnf\r\n")==0){
-                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1);
-            }else if (strcmp(cnf, "uncnf\r\n")==0){
-                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0);
+            if(strcmp(cnf, "cnf")==0){
+                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1); //do not change datarate as in RN module
+                packetTx=true;
+            }else if (strcmp(cnf, "uncnf")==0){
+                LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
+                packetTx=true;
             }
         }
     }
+    while(packetTx){ // This makes it blocking
+        os_runloop_once();
+    }    
 }
 
 void WrapLmicAT::joinOtaa(){
@@ -77,7 +84,9 @@ void WrapLmicAT::joinOtaa(){
         Serial.write("Trying to join OTAA\r\n");
         //do_send(&sendjob);
         LMIC_startJoining();
-        os_runloop();
+        while(!joined){
+            os_runloop_once();
+        }
     }
 }
 
@@ -154,55 +163,34 @@ void WrapLmicAT::setAppKey(LoraParam appkey){
 }
 
 void WrapLmicAT::setPwridx(u1_t pwrIndex){
-    if(band == 868){
-        switch (pwrIndex)
-        {
-        case 1:
-            LMIC.txpow = 14;
-            break;
-        case 2:
-            LMIC.txpow = 14;
-            break;
-        case 3:
-            LMIC.txpow = 14;
-            break;
-        case 4:
-            LMIC.txpow = 14;
-            break;
-        case 5:
-            LMIC.txpow = 14;
-            break;   
-        default:
-            //return invalid param
-            break;
+    switch (pwrIndex)
+    {
+    case 1:
+        LMIC.adrTxPow = 14;
+        break;
+    case 2:
+        LMIC.adrTxPow = 12;
+        break;
+    case 3:
+        LMIC.adrTxPow = 10;
+        break;
+    case 4:
+        LMIC.adrTxPow = 8;
+        break;
+    case 5:
+        LMIC.adrTxPow = 6;
+        break;   
+    default:
+        if(band == 434 && pwrIndex == 0){
+            LMIC.adrTxPow = 16;
         }
-    }else if(band == 434){
-        switch(pwrIndex)
-        {
-        case 0:
-            LMIC.txpow = 0;
-            break;
-        case 1:
-            LMIC.txpow = 14;
-            break;
-        case 2:
-            LMIC.txpow = 14;
-            break;
-        case 3:
-            LMIC.txpow = 14;
-            break;
-        case 4:
-            LMIC.txpow = 14;
-            break;
-        case 5:
-            LMIC.txpow = 14;
-            break;   
-        default:
+        else{
             //return invalid param
-            break;
         }
+        break;
     }
 }
+
 
 void WrapLmicAT::setDr(u1_t dr){
     LMIC.datarate = dr;
@@ -234,15 +222,15 @@ void WrapLmicAT::setLinkChk(u2_t sec){
 }
 
 void WrapLmicAT::setRxDelay1(u2_t rxdelay1){
-    //rxdelay1 is in ms while LMIC.rxDelay in sec
     LMIC.rxDelay = rxdelay1/1000;
 }
 
 void WrapLmicAT::setAr(char* state){
 }
 
-void WrapLmicAT::setRx2(u1_t dataRate, u4_t frequency){
-    //lmic function
+void WrapLmicAT::setRx2(u1_t dr, u4_t freq){
+    LMIC.dn2Dr = dr;
+    LMIC.dn2Freq = freq; 
 }
 
 void WrapLmicAT::setChFreq(u1_t chID, u4_t frequency){
@@ -274,6 +262,7 @@ char* WrapLmicAT::getDevAddr(){
 char* WrapLmicAT::getDevEui(){
     u1_t* deveui;
     os_getDevEui(deveui);
+    Serial.write(*deveui);
     return (char*)deveui;
 }
 
@@ -290,23 +279,39 @@ u2_t WrapLmicAT::getBand(){
 }
 
 u1_t WrapLmicAT::getPwridx(){
-    switch (LMIC.txpow)
+    u1_t pwridx = 0;
+    switch (LMIC.adrTxPow)
     {
-    case 14:
-        return 1;
+    case 16:
+        pwridx = 0;
         break;
-    
-    default:
+    case 14:
+        pwridx = 1;
+        break;
+    case 12:
+        pwridx = 2;
+        break;
+    case 10:
+        pwridx = 3;
+        break;
+    case 8:
+        pwridx = 4;
+        break;
+    case 6:
+        pwridx = 5;
         break;
     }
+    return pwridx;
 }
 
 char* WrapLmicAT::getAdr(){
+    char* result;
     if(LMIC.adrEnabled==1){
-        return "on\r\n";
+        result = "on\r\n";
     }else if(LMIC.adrEnabled==0){
-        return "off\r\n";
+        result = "off\r\n";
     }
+    return result;
 }
 
 u1_t WrapLmicAT::getRetX(){
@@ -318,7 +323,7 @@ u2_t WrapLmicAT::getRxDelay1(){
 }
 
 int WrapLmicAT::getRxDelay2(){
-    return rxdelay2;
+    return (LMIC.rxDelay*1000)+1000;
 }
 
 void WrapLmicAT::getAr(){
@@ -349,8 +354,7 @@ u4_t WrapLmicAT::getChFreq(u1_t chID){
 }
 
 u2_t WrapLmicAT::getChDcycle(u1_t chID){
-    
-    //LMIC.channe
+    return 0;
 }
 
 void WrapLmicAT::getChdrrange(u1_t chID){
@@ -384,14 +388,6 @@ void onEvent (ev_t ev) {
             Serial.println(F("EV_JOINED"));
             joined = true;
             break;
-        /*
-        || This event is defined but not used in the code. No
-        || point in wasting codespace on it.
-        ||
-        || case EV_RFU1:
-        ||     Serial.println(F("EV_RFU1"));
-        ||     break;
-        */
         case EV_JOIN_FAILED:
             Serial.println(F("EV_JOIN_FAILED"));
             break;
@@ -407,6 +403,7 @@ void onEvent (ev_t ev) {
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
             }
+            packetTX = false;
             break;
         case EV_LOST_TSYNC:
             Serial.println(F("EV_LOST_TSYNC"));
@@ -424,22 +421,14 @@ void onEvent (ev_t ev) {
         case EV_LINK_ALIVE:
             Serial.println(F("EV_LINK_ALIVE"));
             break;
-        /*
-        || This event is defined but not used in the code. No
-        || point in wasting codespace on it.
-        ||
-        || case EV_SCAN_FOUND:
-        ||    Serial.println(F("EV_SCAN_FOUND"));
-        ||    break;
-        */
         case EV_TXSTART:
             Serial.println(F("EV_TXSTART"));
+            uncnfpacket = false;
             break;
         case EV_TXCANCELED:
             Serial.println(F("EV_TXCANCELED"));
             break;
         case EV_RXSTART:
-            /* do not print anything -- it wrecks timing */
             break;
         case EV_JOIN_TXCOMPLETE:
             Serial.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));

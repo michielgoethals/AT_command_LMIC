@@ -25,7 +25,7 @@ class WrapLmicAT{
         void begin();
     public:
         //mac commands
-        void reset(u1_t band);
+        void reset(u2_t band);
         void tx(char* cnf, u1_t portno, char* data);
         void joinOtaa();
         void joinABP();
@@ -50,7 +50,7 @@ class WrapLmicAT{
         void setLinkChk(u2_t sec);
         void setRxDelay1(u2_t rxDelay);
         void setAr(char* state);
-        void setRx2(u1_t dataRate, u4_t frequency);
+        void setRx2(u1_t dr, u4_t freq);
         void setChFreq(u1_t chID, u4_t frequency);
         void setChDutyCycle(u1_t chID, u2_t dutyCycle);
         void setChDrRange(u1_t chID, int minRange, int maxRange);
@@ -96,8 +96,7 @@ class WrapLmicAT{
         u2_t band = 868;
         u1_t pwrIndex = 1;
         u1_t retX = 7;
-        u2_t rxdelay2 = 2000;
-        u4_t freq_band = 869525000;
+        u4_t freq_rx2 = 869525000;
         int dcylceps = 1;
         u1_t mrgn = 255;
         u1_t gwnb = 0;
