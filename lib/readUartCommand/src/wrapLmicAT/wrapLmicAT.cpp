@@ -42,7 +42,8 @@ void WrapLmicAT::begin(){
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
     setRetX(retX);
     LMIC_setAdrMode(0);
-    LMIC_setLinkCheckMode(0);
+    //LMIC_setLinkCheckMode(0);
+    //LMIC_setAdrMode(0);
 }
 
 void WrapLmicAT::reset(u2_t band){
@@ -112,15 +113,12 @@ void WrapLmicAT::joinABP(){
         LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band    
     }
 
-    LMIC.dn2Dr = DR_SF9;
-    // Set data rate and transmit power for uplink
-    LMIC_setDrTxpow(DR_SF7,14);
+    //LMIC_startJoining();
     
-    LMIC_startJoining();
-    
-    while(!joined){
+    //while(!joined){
         os_runloop_once();
-    }
+    //}
+    
 }
 
 void WrapLmicAT::save(){
