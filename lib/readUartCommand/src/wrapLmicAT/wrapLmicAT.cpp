@@ -40,6 +40,7 @@ void WrapLmicAT::begin(){
     LMIC_setDrTxpow(dr,KEEP_TXPOW); //default txpow is 16dBm
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
     setRetX(retX);
+    LMIC_setAdrMode(0);
     //LMIC_setLinkCheckMode(0);
     //LMIC_setAdrMode(0);
 }
@@ -48,11 +49,11 @@ void WrapLmicAT::reset(u2_t band){
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
-        begin();
+//        begin();
     }else if(band == 434){
         this->band = band;
         Serial.println("Resetted to 434\r\n");
-        begin();
+//        begin();
     }else{
         //return invalid_param
     } 
@@ -260,17 +261,8 @@ char* WrapLmicAT::getDevAddr(){
 }
 
 char* WrapLmicAT::getDevEui(){
-    char buffer[LORA_EUI_SIZE];
-    char* deveui = (char*)malloc(LORA_EUI_SIZE*2 + 1);
-
-    for (u1_t i = 0; i < LORA_EUI_SIZE; i++){
-        sprintf(buffer, "%X", _deveui[i]);
-        strcat(deveui, buffer);
-    }
-
+    char* deveui;
     return deveui;
-
-    free(deveui);
 }
 
 char* WrapLmicAT::getAppEui(){
