@@ -54,20 +54,20 @@ void ReadUartCommand::parseMacCommand(char* command){
         parseMacTxCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "join")==0){
         parseJoinCommand(getRemainingPart(command, len));
-    }else if(strcmp(word,"save\r\n")== 0){
+    }else if(strcmp(word,"save")== 0){
         wrapper.save();
-    }else if(strcmp(word,"forceENABLE\r\n")== 0){
+    }else if(strcmp(word,"forceENABLE")== 0){
         wrapper.forceEnable();
-    }else if(strcmp(word,"pause\r\n")== 0){
+    }else if(strcmp(word,"pause")== 0){
         wrapper.pause();
-    }else if(strcmp(word,"resume\r\n")== 0){
+    }else if(strcmp(word,"resume")== 0){
         wrapper.pause();
     }else if(strcmp(word,"set")== 0){
         parseMacSetCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"get")== 0){
         parseMacGetCommand(getRemainingPart(command, len));
-    }else if(strcmp(word,"test\r\n")== 0){
-        mySerial.write("test communication ok \r\n");
+    }else if(strcmp(word,"test")== 0){
+        sendResponse("test communication ok");
     }
 }
 
@@ -84,9 +84,9 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
-        if(strcmp(joinMethod, "otaa\r\n")==0){
+        if(strcmp(joinMethod, "otaa")==0){
             wrapper.joinOtaa();
-        }else if(strcmp(joinMethod, "abp\r\n")==0){
+        }else if(strcmp(joinMethod, "abp")==0){
             wrapper.joinABP();
         }
 }
@@ -170,38 +170,38 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     word = getRemainingPart(getCommand,0);
     int len = strlen(word)+1;
 
-    if(strcmp(word,"devaddr\r\n")==0){
-        mySerial.println(wrapper.getDevAddr());
-    }else if(strcmp(word, "deveui\r\n")==0){
-        mySerial.println(wrapper.getDevEui());
-    }else if(strcmp(word, "appeui\r\n")==0){
-        mySerial.println(wrapper.getAppEui());
-    }else if(strcmp(word, "dr\r\n")==0){
-        mySerial.println(wrapper.getDr());
-    }else if(strcmp(word, "band\r\n")==0){
-        mySerial.println(wrapper.getBand());
-    }else if(strcmp(word, "pwridx\r\n")==0){
-        mySerial.println(wrapper.getPwridx());
-    }else if(strcmp(word, "adr\r\n")==0){
-        mySerial.println(wrapper.getAdr());
-    }else if(strcmp(word, "retx\r\n")==0){
-        mySerial.println(wrapper.getRetX());
-    }else if(strcmp(word, "rxdelay1\r\n")==0){
-        mySerial.println(wrapper.getRxDelay1());
-    }else if(strcmp(word, "rxdelay2\r\n")==0){
-        mySerial.println(wrapper.getRxDelay2());
-    }else if(strcmp(word, "ar\r\n")==0){
-        //mySerial.println(wrapper.getAr());
-    }else if(strcmp(word, "rx2\r\n")==0){
-        mySerial.println(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
-    }else if(strcmp(word, "dcycleps\r\n")==0){
-        mySerial.println(wrapper.getDcycleps());
-    }else if(strcmp(word, "mrgn\r\n")==0){
-        mySerial.println(wrapper.getMrgn());
-    }else if(strcmp(word, "gwnb\r\n")==0){
-        mySerial.println(wrapper.getGwnb());
-    }else if(strcmp(word, "status\r\n")==0){
-        //mySerial.println(wrapper.getSatus());
+    if(strcmp(word,"devaddr")==0){
+        sendResponse(wrapper.getDevAddr());
+    }else if(strcmp(word, "deveui")==0){
+        sendResponse(wrapper.getDevEui());
+    }else if(strcmp(word, "appeui")==0){
+        sendResponse(wrapper.getAppEui());
+    }else if(strcmp(word, "dr")==0){
+        sendResponse(wrapper.getDr());
+    }else if(strcmp(word, "band")==0){
+        sendResponse(wrapper.getBand());
+    }else if(strcmp(word, "pwridx")==0){
+        sendResponse(wrapper.getPwridx());
+    }else if(strcmp(word, "adr")==0){
+        sendResponse(wrapper.getAdr());
+    }else if(strcmp(word, "retx")==0){
+        sendResponse(wrapper.getRetX());
+    }else if(strcmp(word, "rxdelay1")==0){
+        sendResponse(wrapper.getRxDelay1());
+    }else if(strcmp(word, "rxdelay2")==0){
+        sendResponse(wrapper.getRxDelay2());
+    }else if(strcmp(word, "ar")==0){
+        //sendResponse(wrapper.getAr());
+    }else if(strcmp(word, "rx2")==0){
+        sendResponse(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
+    }else if(strcmp(word, "dcycleps")==0){
+        sendResponse(wrapper.getDcycleps());
+    }else if(strcmp(word, "mrgn")==0){
+        sendResponse(wrapper.getMrgn());
+    }else if(strcmp(word, "gwnb")==0){
+        sendResponse(wrapper.getGwnb());
+    }else if(strcmp(word, "status")==0){
+        //sendResponse(wrapper.getSatus());
     }
 }
 
@@ -213,13 +213,18 @@ void ReadUartCommand::parseRadioCommand(char* command){
     
 }
 
-void ReadUartCommand::sendResponse(char* response){
-    mySerial.write(response);
+void ReadUartCommand::sendResponse(String response){
+    mySerial.println(response);
+}
+
+void ReadUartCommand::sendResponse(int response){
+    sendResponse((String)response);
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
     char* buff = &arr[offset];
-    return buff;
+    char* remaining = strtok(buff, "\r\n"); //remove carriage return
+    return remaining;
 }
 
 void ReadUartCommand::get2Params(char* params, char** param1, char** param2){

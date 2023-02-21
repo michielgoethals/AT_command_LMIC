@@ -14,6 +14,7 @@ static u1_t _appkey[LORA_KEY_SIZE];
 static u1_t _nwkskey[LORA_KEY_SIZE];
 static u1_t _appskey[LORA_KEY_SIZE];
 static u4_t _devaddr;
+static u4_t _netid;
 
 bool joined = false;
 bool packetTx = false;
@@ -49,13 +50,13 @@ void WrapLmicAT::reset(u2_t band){
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
-//        begin();
+        begin();
     }else if(band == 434){
         this->band = band;
         Serial.println("Resetted to 434\r\n");
-//        begin();
+        begin();
     }else{
-        //return invalid_param
+
     } 
 }
 
@@ -82,12 +83,16 @@ void WrapLmicAT::tx(char* cnf, u1_t portno, char* data){
 
 void WrapLmicAT::joinOtaa(){
     if(devEuiSet && appEuiSet && appKeySet){
-        Serial.write("Trying to join OTAA\r\n");
-        //do_send(&sendjob);
+        
         LMIC_startJoining();
         while(!joined){
             os_runloop_once();
         }
+
+        LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
+        
+        //TO DO _devaddr is int convert to hex and store in string
+   
     }
 }
 
@@ -98,7 +103,9 @@ void WrapLmicAT::joinABP(){
 }
 
 void WrapLmicAT::save(){
-
+    HAL_FLASHEx_DATAEEPROM_Unlock();
+    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, _devaddr); //4 bytes
+    HAL_FLASHEx_DATAEEPROM_Lock();
 }
 
 void WrapLmicAT::forceEnable(){
@@ -114,11 +121,15 @@ void WrapLmicAT::resume(){
 }
 
 void WrapLmicAT::setDevAddr(LoraParam devaddr){
-    _devaddr = (u4_t)strtol(devaddr,NULL,16);
+    this->devAddr = devaddr;
+
+    _devaddr = (u4_t)strtol(devaddr,NULL,16); //save to LMIC library format
     devAddrSet = true;
 }
 
 void WrapLmicAT::setDevEui(LoraParam deveui){
+    this->devEui = deveui;
+
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
     	tempStr[0] = *(deveui+(i*2));
     	tempStr[1] = *(deveui+(i*2)+1);
@@ -128,6 +139,8 @@ void WrapLmicAT::setDevEui(LoraParam deveui){
 }
 
 void WrapLmicAT::setAppEui(LoraParam appeui){
+    this->appEui = appeui;
+
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
     	tempStr[0] = *(appeui+(i*2));
     	tempStr[1] = *(appeui+(i*2)+1);
@@ -137,6 +150,9 @@ void WrapLmicAT::setAppEui(LoraParam appeui){
 }
 
 void WrapLmicAT::setNwkskey(LoraParam nwkskey){
+    this->nwksKey = nwkskey;
+
+    //set _nwkskey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(nwkskey+(i*2));
     	tempStr[1] = *(nwkskey+(i*2)+1);
@@ -146,6 +162,9 @@ void WrapLmicAT::setNwkskey(LoraParam nwkskey){
 }
 
 void WrapLmicAT::setAppsKey(LoraParam appskey){
+    this->appsKey = appskey;
+
+    //set _appskey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appskey+(i*2));
     	tempStr[1] = *(appskey+(i*2)+1);
@@ -155,6 +174,9 @@ void WrapLmicAT::setAppsKey(LoraParam appskey){
 }
 
 void WrapLmicAT::setAppKey(LoraParam appkey){
+    this->appKey = appkey;
+
+    //set _appkey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appkey+(i*2));
     	tempStr[1] = *(appkey+(i*2)+1);
@@ -198,9 +220,9 @@ void WrapLmicAT::setDr(u1_t dr){
 }
 
 void WrapLmicAT::setAdr(char* state){
-    if(strcmp(state, "on\r\n")==0){
+    if(strcmp(state, "on")==0){
         LMIC_setAdrMode(1);
-    }else if(strcmp(state, "on\r\n")==0){
+    }else if(strcmp(state, "off")==0){
         LMIC_setAdrMode(0);
     }
 }
@@ -256,17 +278,16 @@ void WrapLmicAT::setChStatus(u1_t chID, char* enable){
     }
 }
 
-char* WrapLmicAT::getDevAddr(){
-    return (char*)LMIC.devaddr;
+String WrapLmicAT::getDevAddr(){
+    return devAddr;
 }
 
-char* WrapLmicAT::getDevEui(){
-    char* deveui;
-    return deveui;
+String WrapLmicAT::getDevEui(){
+    return devEui;
 }
 
-char* WrapLmicAT::getAppEui(){
-    return (char*)LMIC.artKey;
+String WrapLmicAT::getAppEui(){
+    return appEui;
 }
 
 u1_t WrapLmicAT::getDr(){
@@ -303,12 +324,12 @@ u1_t WrapLmicAT::getPwridx(){
     return pwridx;
 }
 
-char* WrapLmicAT::getAdr(){
-    char* result;
+String WrapLmicAT::getAdr(){
+    String result;
     if(LMIC.adrEnabled==1){
-        result = "on\r\n";
+        result = "on";
     }else if(LMIC.adrEnabled==0){
-        result = "off\r\n";
+        result = "off";
     }
     return result;
 }
@@ -328,7 +349,7 @@ int WrapLmicAT::getRxDelay2(){
 void WrapLmicAT::getAr(){
 }
 
-char * WrapLmicAT::getRx2(u1_t band){
+String WrapLmicAT::getRx2(u1_t band){
     u1_t dataRate2ReceiveWindow = LMIC.dn2Dr;
     u4_t freq2ReceiveWindow = LMIC.dn2Freq;
 }
@@ -394,7 +415,7 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOINED:
             Serial.println(F("EV_JOINED"));
-            joined = true;             
+            joined = true;
             break;
         case EV_JOIN_FAILED:
             Serial.println(F("EV_JOIN_FAILED"));

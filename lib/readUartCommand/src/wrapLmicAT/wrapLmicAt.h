@@ -17,6 +17,8 @@
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16
 
+#define EEPROM_ADDRESS 0x08080000
+
 typedef const char * LoraParam;
 
 class WrapLmicAT{
@@ -57,18 +59,18 @@ class WrapLmicAT{
         void setChStatus(u1_t chIDn, char* enable);
 
         //mac get commands
-        char* getDevAddr();
-        char* getDevEui();
-        char* getAppEui();
+        String getDevAddr();
+        String getDevEui();
+        String getAppEui();
         u1_t getDr();
         u2_t getBand();
         u1_t getPwridx();
-        char* getAdr();
+        String getAdr();
         u1_t getRetX();
         u2_t getRxDelay1(); 
         int getRxDelay2(); 
         void getAr();
-        char* getRx2(u1_t band);
+        String getRx2(u1_t band);
         u2_t getDcycleps();
         u1_t getMrgn();
         u1_t getGwnb();
@@ -79,14 +81,21 @@ class WrapLmicAT{
         void getChStatus(u1_t chID);
        
     private:
-        //OTAA
+        //OTAA 
+        
+        String devEui;
+        String appEui;
+        String appKey;
 
         bool devEuiSet = false;
         bool appEuiSet = false;
         bool appKeySet = false;
 
         //ABP
-     
+        String nwksKey;
+        String devAddr;
+        String appsKey;
+
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;
