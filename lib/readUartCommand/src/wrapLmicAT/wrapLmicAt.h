@@ -18,6 +18,7 @@
 #define LORA_KEY_SIZE 16
 
 #define EEPROM_ADDRESS 0x08080000
+#define NET_ID 0x000013
 
 typedef const char * LoraParam;
 

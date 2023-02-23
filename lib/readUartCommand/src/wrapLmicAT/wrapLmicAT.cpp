@@ -42,11 +42,12 @@ void WrapLmicAT::begin(){
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
     setRetX(retX);
     LMIC_setAdrMode(0);
-    //LMIC_setLinkCheckMode(0);
-    //LMIC_setAdrMode(0);
+    LMIC_setLinkCheckMode(0);
+    LMIC_setAdrMode(0);
 }
 
 void WrapLmicAT::reset(u2_t band){
+    joined = false;
     if(band == 868){
         this->band = band;
         Serial.write("Resetted to 868\r\n");
@@ -90,7 +91,6 @@ void WrapLmicAT::joinOtaa(){
         }
 
         LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
-        
         //TO DO _devaddr is int convert to hex and store in string
    
     }
@@ -98,27 +98,43 @@ void WrapLmicAT::joinOtaa(){
 
 void WrapLmicAT::joinABP(){
     if(devAddrSet && nwksKeySet && appsKeySet){
-        LMIC_setSession(0x13,_devaddr, _nwkskey, _appskey);
-    }
+        LMIC_setSession(NET_ID,_devaddr, _nwkskey, _appskey);
+        if(band = 868){
+            LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
+            LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
+            LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+            LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+        }
 
-    if(band = 868){
-        LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
-        LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-        LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band    
-    }
+        LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
 
-    //LMIC_startJoining();
-    
-    //while(!joined){
-        os_runloop_once();
-    //}
-    
+       Serial.print("netid: ");
+              Serial.println(_netid, DEC);
+              Serial.print("devaddr: ");
+              Serial.println(_devaddr, HEX);
+              Serial.print("AppSKey: ");
+              for (size_t i=0; i<LORA_KEY_SIZE; ++i) {
+                //_appskey[i]&= 0xff;
+                Serial.print(_appskey[i], HEX);
+              }
+              Serial.println("");
+              Serial.print("NwkSKey: ");
+              for (size_t i=0; i<LORA_KEY_SIZE; ++i) {
+                _nwkskey[i]&= 0xff;
+                Serial.print(_nwkskey[i], HEX);
+              }
+
+            Serial.println("Joined ABP");
+
+        joined = true;
+
+    }
 }
 
 void WrapLmicAT::save(){
