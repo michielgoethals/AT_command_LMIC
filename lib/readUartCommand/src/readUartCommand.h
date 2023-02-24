@@ -30,6 +30,8 @@ class ReadUartCommand{
         void parseRadioCommand(char* command);
         void sendResponse(String response);
         void sendResponse(int response);
+        void sendResponseHex(int response);
+        
 
     private:
         char * getRemainingPart(char* arr, int offset);

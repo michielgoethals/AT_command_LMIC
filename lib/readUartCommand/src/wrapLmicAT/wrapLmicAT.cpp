@@ -325,18 +325,23 @@ void WrapLmicAT::setRx2(u1_t dr, u4_t freq){
 }
 
 void WrapLmicAT::setChFreq(u1_t chID, u4_t frequency){
+    chUpdated = 1;
     LMIC.channelFreq[chID] = frequency;
 }
 
 void WrapLmicAT::setChDutyCycle(u1_t chID, u2_t dutyCycle){
+    chUpdated = 1;
+    prescalerUpdated = 1;
     //todo
 }
 
 void WrapLmicAT::setChDrRange(u1_t chID, int minRange, int maxRange){
+    chUpdated = 1;
     //todo
 }
 
 void WrapLmicAT::setChStatus(u1_t chID, char* enable){
+    chUpdated = 1;
     if(strcmp(enable, "on/r/n")==0){
         LMIC_enableChannel(chID);
     }else if(strcmp(enable, "off/r/n")==0){
@@ -451,7 +456,7 @@ u2_t WrapLmicAT::getSatus(){
         status |= 0b0000000000000001;   
     }
     //bit 1,2,3: mac state   
-    if(OP_TXDATA){
+    if(LMIC.opmode & OP_TXRXPEND){
         status |= 0b0000000000000010;
     }
     //bit 4: automatic reply
@@ -496,6 +501,8 @@ u2_t WrapLmicAT::getSatus(){
     prescalerUpdated = 0;
     RX2Updated = 0;
     TXUpdated = 0;
+
+    return status;
 }
 
 u4_t WrapLmicAT::getChFreq(u1_t chID){

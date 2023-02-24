@@ -201,7 +201,7 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     }else if(strcmp(word, "gwnb")==0){
         sendResponse(wrapper.getGwnb());
     }else if(strcmp(word, "status")==0){
-        //sendResponse(wrapper.getSatus());
+        sendResponse(wrapper.getSatus());
     }
 }
 
@@ -219,6 +219,10 @@ void ReadUartCommand::sendResponse(String response){
 
 void ReadUartCommand::sendResponse(int response){
     sendResponse((String)response);
+}
+
+void ReadUartCommand::sendResponseHex(int response){
+    mySerial.println(response, HEX);
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
