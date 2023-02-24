@@ -17,8 +17,20 @@
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16
 
-#define EEPROM_ADDRESS 0x08080000
-#define NET_ID 0x000013
+#define EEPROM_START_ADDR_BAND          0x08080000
+#define EEPROM_START_ADDR_DEVEUI        0x08080004
+#define EEPROM_START_ADDR_APPEUI        0x0808000C
+#define EEPROM_START_ADDR_APPKEY        0x08080014
+#define EEPROM_START_ADDR_NWKSKEY       0x08080024
+#define EEPROM_START_ADDR_APPSKEY       0x08080034
+#define EEPROM_START_ADDR_DEVADDR       0x08080044
+#define EEPROM_START_ADDR_CH_FREQ       0x08080048
+#define EEPROM_START_ADDR_CH_DCYCLE     0x0808004C
+#define EEPROM_START_ADDR_CH_DRRANGE    0x0808004D
+#define EEPROM_START_ADDR_CH_STATUS     0x0808004F
+
+
+#define NET_ID 0x13
 
 typedef const char * LoraParam;
 
@@ -55,8 +67,8 @@ class WrapLmicAT{
         void setAr(char* state);
         void setRx2(u1_t dr, u4_t freq);
         void setChFreq(u1_t chID, u4_t frequency);
-        void setChDutyCycle(u1_t chID, u2_t dutyCycle);
-        void setChDrRange(u1_t chID, int minRange, int maxRange);
+        void setChDCycle(u1_t chID, u2_t Cycle);
+        void setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange);
         void setChStatus(u1_t chIDn, char* enable);
 
         //mac get commands
@@ -69,7 +81,7 @@ class WrapLmicAT{
         String getAdr();
         u1_t getRetX();
         u2_t getRxDelay1(); 
-        int getRxDelay2(); 
+        u2_t getRxDelay2(); 
         String getAr();
         String getRx2(u1_t band);
         u2_t getDcycleps();
@@ -78,8 +90,8 @@ class WrapLmicAT{
         u2_t getSatus();
         u4_t getChFreq(u1_t chID);
         u2_t getChDcycle(u1_t chID);
-        void getChdrrange(u1_t chID);
-        void getChStatus(u1_t chID);
+        u2_t getChdrrange(u1_t chID);
+        String getChStatus(u1_t chID);
        
     private:
         //OTAA 

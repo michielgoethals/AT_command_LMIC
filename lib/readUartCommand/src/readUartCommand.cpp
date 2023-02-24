@@ -150,7 +150,7 @@ void ReadUartCommand::parseMacSetChCommand(char* setChCommand){
         char* chID;
         char* dcycle;
         get2Params(getRemainingPart(setChCommand,len), &chID, &dcycle);
-        wrapper.setChDutyCycle(atoi(chID), atoi(dcycle));
+        wrapper.setChDCycle(atoi(chID), atoi(dcycle));
     }else if(strcmp(word, "drrange")==0){
         char* chID;
         char* minRange;

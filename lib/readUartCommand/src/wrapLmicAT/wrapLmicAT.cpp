@@ -43,6 +43,7 @@ void WrapLmicAT::begin(){
     setRetX(retX);
     LMIC_setAdrMode(adr);
     LMIC_setLinkCheckMode(linkchk);
+    LMIC.margin = mrgn;
 }
 
 void WrapLmicAT::reset(u2_t band){
@@ -139,22 +140,32 @@ void WrapLmicAT::joinABP(){
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
-//TO DO change eeprom address corresponding to data saved
 void WrapLmicAT::save(){
-    //word = 32 bits = 4 bytes
     HAL_FLASHEx_DATAEEPROM_Unlock();
-    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, band); //2 bytes
+
+    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_BAND, band); //2 bytes
+
     for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _deveui[i]); //1 byte
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appeui[i]); //1 byte
+        Serial.println(_deveui[i],HEX);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_DEVEUI+i, _deveui[i]);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_APPEUI+i, _appeui[i]);
     }
+
     for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appkey); //1 bytes
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _nwkskey); //1 bytes
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appskey); //1 bytes
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_APPKEY+i, _appkey[i]);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_NWKSKEY+i, _nwkskey[i]);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_APPSKEY+i, _appskey[i]);
     }
-        
-    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, _devaddr); //4 bytes 
+
+    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_DEVADDR, _devaddr); //4 bytes
+    for(u1_t i = 0; i< MAX_CHANNELS; i++){
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + 9*i, LMIC.channelFreq[i]);
+
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.channelDcycle[i]);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_HALFWORD, EEPROM_START_ADDR_CH_DRRANGE + 9*i, LMIC.channelDrMap[i]);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS + 9*i, LMIC.channelMap << i);
+    }
+
     HAL_FLASHEx_DATAEEPROM_Lock();
 }
 
@@ -329,15 +340,19 @@ void WrapLmicAT::setChFreq(u1_t chID, u4_t frequency){
     LMIC.channelFreq[chID] = frequency;
 }
 
-void WrapLmicAT::setChDutyCycle(u1_t chID, u2_t dutyCycle){
+void WrapLmicAT::setChDCycle(u1_t chID, u2_t dCycle){
     chUpdated = 1;
+    u2_t actualDcycle = 100/(dCycle + 1); //in %
+    u2_t txcap = 1/actualDcycle;
+    //get correct band 
+    u1_t const band = LMIC.channelFreq[chID] & 0x3;
+    LMIC.bands[band].txcap = txcap;
     prescalerUpdated = 1;
-    //todo
 }
 
-void WrapLmicAT::setChDrRange(u1_t chID, int minRange, int maxRange){
+void WrapLmicAT::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
     chUpdated = 1;
-    //todo
+    LMIC.channelDrMap[chID] = DR_RANGE_MAP(minRange, maxRange);
 }
 
 void WrapLmicAT::setChStatus(u1_t chID, char* enable){
@@ -413,7 +428,7 @@ u2_t WrapLmicAT::getRxDelay1(){
     return LMIC.rxDelay*1000;
 }
 
-int WrapLmicAT::getRxDelay2(){
+u2_t WrapLmicAT::getRxDelay2(){
     return (LMIC.rxDelay*1000)+1000;
 }
 
@@ -510,15 +525,26 @@ u4_t WrapLmicAT::getChFreq(u1_t chID){
 }
 
 u2_t WrapLmicAT::getChDcycle(u1_t chID){
-    return 0;
+    u1_t const band = LMIC.channelFreq[chID] & 0x3;
+    u2_t txcap = LMIC.bands[band].txcap;
+    u2_t dCycle = 1 / txcap;
+    return (100/dCycle) - 1;
 }
 
-void WrapLmicAT::getChdrrange(u1_t chID){
-    //u2_t drRange = LMIC.channelDrMap[chID]
+u2_t WrapLmicAT::getChdrrange(u1_t chID){
+    return LMIC.channelDrMap[chID];
+
 }
 
-void WrapLmicAT::getChStatus(u1_t chID){
-    //LMIC_enableChannel
+String WrapLmicAT::getChStatus(u1_t chID){
+    bit_t enabled = LMIC.channelMap << chID;
+    String status = "off";
+    
+    if(enabled == 1){
+        status = "on";
+    }
+
+    return status;
 }
 
 void onEvent (ev_t ev) {
