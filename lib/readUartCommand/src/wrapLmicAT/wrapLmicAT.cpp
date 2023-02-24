@@ -41,9 +41,8 @@ void WrapLmicAT::begin(){
     LMIC_setDrTxpow(dr,KEEP_TXPOW); //default txpow is 16dBm
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
     setRetX(retX);
-    LMIC_setAdrMode(0);
-    LMIC_setLinkCheckMode(0);
-    LMIC_setAdrMode(0);
+    LMIC_setAdrMode(adr);
+    LMIC_setLinkCheckMode(linkchk);
 }
 
 void WrapLmicAT::reset(u2_t band){
@@ -134,12 +133,28 @@ void WrapLmicAT::joinABP(){
 
         joined = true;
 
+        //TO DO ABP joining 
+
     }
 }
 
+//save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
+//TO DO change eeprom address corresponding to data saved
 void WrapLmicAT::save(){
+    //word = 32 bits = 4 bytes
     HAL_FLASHEx_DATAEEPROM_Unlock();
-    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, _devaddr); //4 bytes
+    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, band); //2 bytes
+    for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _deveui[i]); //1 byte
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appeui[i]); //1 byte
+    }
+    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appkey); //1 bytes
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _nwkskey); //1 bytes
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_ADDRESS, _appskey); //1 bytes
+    }
+        
+    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_ADDRESS, _devaddr); //4 bytes 
     HAL_FLASHEx_DATAEEPROM_Lock();
 }
 
@@ -147,11 +162,15 @@ void WrapLmicAT::forceEnable(){
 
 }
 
+//pause mac
 void WrapLmicAT::pause(){
-    LMIC_shutdown();
+    paused = 1;
+    //LMIC_shutdown();
 }
 
+//resume mac
 void WrapLmicAT::resume(){
+    paused = 0;
     //LMIC_reset()
 }
 
@@ -255,9 +274,13 @@ void WrapLmicAT::setDr(u1_t dr){
 }
 
 void WrapLmicAT::setAdr(char* state){
+    pwrUpdated = 1;
+    nbRepUpdated = 1;
     if(strcmp(state, "on")==0){
+        adr = 1;
         LMIC_setAdrMode(1);
     }else if(strcmp(state, "off")==0){
+        adr = 0;
         LMIC_setAdrMode(0);
     }
 }
@@ -272,8 +295,10 @@ void WrapLmicAT::setRetX(u1_t retX){
 
 void WrapLmicAT::setLinkChk(u2_t sec){
     if(sec ==0){
+        linkchk = 0;
         LMIC_setLinkCheckMode(0);
-    }else if(sec>0 && sec<65535){
+    }else{
+        linkchk = 1;
         LMIC_setLinkCheckMode(1);
         LMIC.adrAckReq = sec;
     }
@@ -284,9 +309,17 @@ void WrapLmicAT::setRxDelay1(u2_t rxdelay1){
 }
 
 void WrapLmicAT::setAr(char* state){
+    if(strcmp(state, "on")==0){
+        ar = 1;
+        //TO DO LMIC Auto reply on;
+    }else if(strcmp(state, "off")==0){
+        ar = 0;
+        //TO DO LMIC Auto reply off;
+    }
 }
 
 void WrapLmicAT::setRx2(u1_t dr, u4_t freq){
+    RX2Updated = 1;
     LMIC.dn2Dr = dr;
     LMIC.dn2Freq = freq; 
 }
@@ -360,11 +393,9 @@ u1_t WrapLmicAT::getPwridx(){
 }
 
 String WrapLmicAT::getAdr(){
-    String result;
+    String result = "off";
     if(LMIC.adrEnabled==1){
         result = "on";
-    }else if(LMIC.adrEnabled==0){
-        result = "off";
     }
     return result;
 }
@@ -381,31 +412,93 @@ int WrapLmicAT::getRxDelay2(){
     return (LMIC.rxDelay*1000)+1000;
 }
 
-void WrapLmicAT::getAr(){
+//automatic reply on/off
+String WrapLmicAT::getAr(){
+    String result = "off";
+    if(ar == 1){
+        result = "on";
+    }
+    return result;
 }
 
 String WrapLmicAT::getRx2(u1_t band){
+    //TO DO return correct format
     u1_t dataRate2ReceiveWindow = LMIC.dn2Dr;
     u4_t freq2ReceiveWindow = LMIC.dn2Freq;
 }
 
+//duty cycle in pico seconds
 u2_t WrapLmicAT::getDcycleps(){
     return LMIC.globalDutyRate;
 }
 
+//margin
 u1_t WrapLmicAT::getMrgn(){
     return LMIC.margin;
 }
 
+//number of gateways received linkck
 u1_t WrapLmicAT::getGwnb(){
     return gwnb;
 }   
 
-void WrapLmicAT::getSatus(){
+//2-byte hex representing status of module default 0x00
+u2_t WrapLmicAT::getSatus(){
+    //clear status reg
+    status &= 0b0000000000000000;
+    //bit 0: joined
+    if(joined){
+        status |= 0b0000000000000001;   
+    }
+    //bit 1,2,3: mac state   
+    if(OP_TXDATA){
+        status |= 0b0000000000000010;
+    }
+    //bit 4: automatic reply
+    if(ar == 1){
+        status |= 0b0000000000010000;
+    }
+    //bit 5: ADR
+    if(adr ==1){
+        status |= 0b0000000000100000;
+    }
+    //bit 6: silent
+    if(silent ==1){
+        status |= 0b0000000001000000;
+    }
+    //bit 7: mac paused
+    if(paused == 1){
+        status |= 0b0000000010000000;
+    }
+    //bit 8: RFU
+    ///???
+    //bit 9: link check
+    if(linkchk == 1){
+        status |= 0b0000001000000000;
+    }
+    //bit 10: channels updated
+    status |= chUpdated << 10;
+    //bit 11: output power updated
+    status |= pwrUpdated << 11;
+    //bit 12: number of rep updated (repetitions uncnf packets)
+    status |= nbRepUpdated << 12;
+    //bit 13: prescaler updated
+    status |= prescalerUpdated << 13;
+    //bit 14: RX2 updated
+    status |= RX2Updated << 14;
+    //bit 15: TX timing updated
+    status |= TXUpdated << 15;
+    
+    //reset the update status bit
+    chUpdated = 0;
+    pwrUpdated = 0;
+    nbRepUpdated = 0;
+    prescalerUpdated = 0;
+    RX2Updated = 0;
+    TXUpdated = 0;
 }
 
 u4_t WrapLmicAT::getChFreq(u1_t chID){
-    Serial.write(chID);
     return LMIC.channelFreq[chID];
 }
 
@@ -419,14 +512,6 @@ void WrapLmicAT::getChdrrange(u1_t chID){
 
 void WrapLmicAT::getChStatus(u1_t chID){
     //LMIC_enableChannel
-}
-
-
-void printHex2(unsigned v) {
-    v &= 0xff;
-    if (v < 16)
-        Serial.print('0');
-    Serial.print(v, HEX);
 }
 
 void onEvent (ev_t ev) {

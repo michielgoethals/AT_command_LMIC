@@ -70,12 +70,12 @@ class WrapLmicAT{
         u1_t getRetX();
         u2_t getRxDelay1(); 
         int getRxDelay2(); 
-        void getAr();
+        String getAr();
         String getRx2(u1_t band);
         u2_t getDcycleps();
         u1_t getMrgn();
         u1_t getGwnb();
-        void getSatus();
+        u2_t getSatus();
         u4_t getChFreq(u1_t chID);
         u2_t getChDcycle(u1_t chID);
         void getChdrrange(u1_t chID);
@@ -107,9 +107,25 @@ class WrapLmicAT{
         u1_t pwrIndex = 1;
         u1_t retX = 7;
         u4_t freq_rx2 = 869525000;
-        int dcylceps = 1;
+        u2_t dcylceps = 1; 
         u1_t mrgn = 255;
         u1_t gwnb = 0;
+        bit_t adr = 0;
+        bit_t ar = 0;
+        bit_t silent = 0;
+        bit_t paused = 0;
+        bit_t linkchk = 0;
+        
+        //status register
+        u2_t status = 0b0000000000000000;
+
+        //settings updated bits
+        bit_t chUpdated = 0;
+        bit_t pwrUpdated = 0;
+        bit_t nbRepUpdated = 0;
+        bit_t prescalerUpdated = 0;
+        bit_t RX2Updated = 0;
+        bit_t TXUpdated = 0;
         
         char tempStr[3] = {0x00, 0x00, 0x00};
 };
