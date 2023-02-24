@@ -442,8 +442,14 @@ String WrapLmicAT::getAr(){
 
 String WrapLmicAT::getRx2(u1_t band){
     //TO DO return correct format
-    u1_t dataRate2ReceiveWindow = LMIC.dn2Dr;
-    u4_t freq2ReceiveWindow = LMIC.dn2Freq;
+    char* result1;
+    char* result2;
+
+    itoa(LMIC.dn2Dr, result1, 10);
+    itoa(LMIC.dn2Freq, result2, 10);
+    String res1 = String(result1);
+    String res2 = String(result2);
+    return res1 + " " + res2;
 }
 
 //duty cycle in pico seconds
