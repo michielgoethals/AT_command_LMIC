@@ -90,7 +90,7 @@ class WrapLmicAT{
         u2_t getSatus();
         u4_t getChFreq(u1_t chID);
         u2_t getChDcycle(u1_t chID);
-        u2_t getChdrrange(u1_t chID);
+        u2_t getChDrrange(u1_t chID);
         String getChStatus(u1_t chID);
        
     private:

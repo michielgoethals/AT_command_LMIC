@@ -493,9 +493,8 @@ u2_t WrapLmicAT::getChDcycle(u1_t chID){
 }
 
 //get
-u2_t WrapLmicAT::getChdrrange(u1_t chID){
+u2_t WrapLmicAT::getChDrrange(u1_t chID){
     return LMIC.channelDrMap[chID];
-
 }
 
 String WrapLmicAT::getChStatus(u1_t chID){
