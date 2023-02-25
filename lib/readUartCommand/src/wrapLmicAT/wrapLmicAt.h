@@ -96,19 +96,15 @@ class WrapLmicAT{
     private:
         //OTAA 
         
-        String devEui;
-        String appEui;
-        String appKey;
+        String devEui = "0000000000000000";
+        String appEui = "0000000000000000";
 
         bool devEuiSet = false;
         bool appEuiSet = false;
         bool appKeySet = false;
 
         //ABP
-        String nwksKey;
-        String devAddr;
-        String appsKey;
-
+        String devAddr = "00000000";
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;
