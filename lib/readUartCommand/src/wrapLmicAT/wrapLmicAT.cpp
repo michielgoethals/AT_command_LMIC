@@ -44,6 +44,7 @@ void WrapLmicAT::begin(){
     LMIC_setAdrMode(adr);
     LMIC_setLinkCheckMode(linkchk);
     LMIC.margin = mrgn;
+    LMIC.dn2Dr = 3;
 }
 
 void WrapLmicAT::reset(u2_t band){
@@ -91,46 +92,15 @@ void WrapLmicAT::joinOtaa(){
         }
 
         LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
-        //TO DO _devaddr is int convert to hex and store in string
-   
+        devAddr = String(_devaddr); //get devaddr to return in mac get devaddr
+
+        LMIC_setLinkCheckMode(linkchk);
     }
 }
 
 void WrapLmicAT::joinABP(){
     if(devAddrSet && nwksKeySet && appsKeySet){
         LMIC_setSession(NET_ID,_devaddr, _nwkskey, _appskey);
-        if(band = 868){
-            LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
-            LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
-            LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-            LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
-        }
-
-        LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
-
-       Serial.print("netid: ");
-              Serial.println(_netid, DEC);
-              Serial.print("devaddr: ");
-              Serial.println(_devaddr, HEX);
-              Serial.print("AppSKey: ");
-              for (size_t i=0; i<LORA_KEY_SIZE; ++i) {
-                //_appskey[i]&= 0xff;
-                Serial.print(_appskey[i], HEX);
-              }
-              Serial.println("");
-              Serial.print("NwkSKey: ");
-              for (size_t i=0; i<LORA_KEY_SIZE; ++i) {
-                _nwkskey[i]&= 0xff;
-                Serial.print(_nwkskey[i], HEX);
-              }
-
-            Serial.println("Joined ABP");
 
         joined = true;
 
@@ -185,7 +155,7 @@ void WrapLmicAT::resume(){
 }
 
 void WrapLmicAT::setDevAddr(LoraParam devaddr){
-    this->devAddr = devaddr;
+    this->devAddr = String(devaddr);
 
     _devaddr = (u4_t)strtol(devaddr,NULL,16); //save to LMIC library format
     devAddrSet = true;
@@ -203,7 +173,7 @@ void WrapLmicAT::setDevEui(LoraParam deveui){
 }
 
 void WrapLmicAT::setAppEui(LoraParam appeui){
-    this->appEui = appeui;
+    this->appEui = String(appeui);
 
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
     	tempStr[0] = *(appeui+(i*2));
@@ -213,10 +183,8 @@ void WrapLmicAT::setAppEui(LoraParam appeui){
     appEuiSet = true;
 }
 
+//Keys must be stored in big endian
 void WrapLmicAT::setNwkskey(LoraParam nwkskey){
-    this->nwksKey = nwkskey;
-
-    //set _nwkskey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(nwkskey+(i*2));
     	tempStr[1] = *(nwkskey+(i*2)+1);
@@ -226,9 +194,6 @@ void WrapLmicAT::setNwkskey(LoraParam nwkskey){
 }
 
 void WrapLmicAT::setAppsKey(LoraParam appskey){
-    this->appsKey = appskey;
-
-    //set _appskey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appskey+(i*2));
     	tempStr[1] = *(appskey+(i*2)+1);
@@ -238,9 +203,6 @@ void WrapLmicAT::setAppsKey(LoraParam appskey){
 }
 
 void WrapLmicAT::setAppKey(LoraParam appkey){
-    this->appKey = appkey;
-
-    //set _appkey for LMIC
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appkey+(i*2));
     	tempStr[1] = *(appkey+(i*2)+1);
@@ -303,6 +265,7 @@ void WrapLmicAT::setRetX(u1_t retX){
     LMIC.upRepeat = retX;
 }
 
+//TO DO seconds implementation
 void WrapLmicAT::setLinkChk(u2_t sec){
     if(sec ==0){
         linkchk = 0;
@@ -318,13 +281,12 @@ void WrapLmicAT::setRxDelay1(u2_t rxdelay1){
     LMIC.rxDelay = rxdelay1/1000;
 }
 
+//Automatic replay TO DO LMIC Auto reply on;
 void WrapLmicAT::setAr(char* state){
     if(strcmp(state, "on")==0){
         ar = 1;
-        //TO DO LMIC Auto reply on;
     }else if(strcmp(state, "off")==0){
         ar = 0;
-        //TO DO LMIC Auto reply off;
     }
 }
 
@@ -343,7 +305,6 @@ void WrapLmicAT::setChDCycle(u1_t chID, u2_t dCycle){
     chUpdated = 1;
     u2_t actualDcycle = 100/(dCycle + 1); //in %
     u2_t txcap = 1/actualDcycle;
-    //get correct band 
     u1_t const band = LMIC.channelFreq[chID] & 0x3;
     LMIC.bands[band].txcap = txcap;
     prescalerUpdated = 1;
@@ -440,19 +401,12 @@ String WrapLmicAT::getAr(){
     return result;
 }
 
+//Second receive window parameters
 String WrapLmicAT::getRx2(u1_t band){
-    //TO DO return correct format
-    char* result1;
-    char* result2;
-
-    itoa(LMIC.dn2Dr, result1, 10);
-    itoa(LMIC.dn2Freq, result2, 10);
-    String res1 = String(result1);
-    String res2 = String(result2);
-    return res1 + " " + res2;
+    return String(LMIC.dn2Dr) + " " + String(LMIC.dn2Freq);
 }
 
-//duty cycle in pico seconds
+//duty cycle prescaler TO DO
 u2_t WrapLmicAT::getDcycleps(){
     return LMIC.globalDutyRate;
 }
@@ -462,7 +416,7 @@ u1_t WrapLmicAT::getMrgn(){
     return LMIC.margin;
 }
 
-//number of gateways received linkck
+//number of gateways received linkchk TO DO 0 if disabled, 1-255 if enabled)
 u1_t WrapLmicAT::getGwnb(){
     return gwnb;
 }   
@@ -525,10 +479,12 @@ u2_t WrapLmicAT::getSatus(){
     return status;
 }
 
+//Get channel frequency
 u4_t WrapLmicAT::getChFreq(u1_t chID){
     return LMIC.channelFreq[chID];
 }
 
+//Get channel duty cycle
 u2_t WrapLmicAT::getChDcycle(u1_t chID){
     u1_t const band = LMIC.channelFreq[chID] & 0x3;
     u2_t txcap = LMIC.bands[band].txcap;
@@ -536,6 +492,7 @@ u2_t WrapLmicAT::getChDcycle(u1_t chID){
     return (100/dCycle) - 1;
 }
 
+//get
 u2_t WrapLmicAT::getChdrrange(u1_t chID){
     return LMIC.channelDrMap[chID];
 
