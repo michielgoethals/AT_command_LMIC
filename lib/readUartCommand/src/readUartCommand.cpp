@@ -167,7 +167,7 @@ void ReadUartCommand::parseMacSetChCommand(char* setChCommand){
 
 void ReadUartCommand::parseMacGetCommand(char* getCommand){
     char * word;
-    word = getRemainingPart(getCommand,0);
+    word = strtok(getCommand, " ");
     int len = strlen(word)+1;
 
     if(strcmp(word,"devaddr")==0){
@@ -191,7 +191,7 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     }else if(strcmp(word, "rxdelay2")==0){
         sendResponse(wrapper.getRxDelay2());
     }else if(strcmp(word, "ar")==0){
-        //sendResponse(wrapper.getAr());
+        sendResponse(wrapper.getAr());
     }else if(strcmp(word, "rx2")==0){
         sendResponse(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
     }else if(strcmp(word, "dcycleps")==0){
@@ -202,6 +202,26 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
         sendResponse(wrapper.getGwnb());
     }else if(strcmp(word, "status")==0){
         sendResponse(wrapper.getSatus());
+    }else if(strcmp(word, "ch")==0){
+        parseMacGetChCommand(getRemainingPart(getCommand,len));
+    }
+}
+
+void ReadUartCommand::parseMacGetChCommand(char* getChCommand){
+    char * word;
+    word = strtok(getChCommand, " ");
+    int len = strlen(word)+1;
+
+    char* chID = getRemainingPart(getChCommand,len);
+
+    if(strcmp(word, "freq")==0){
+        sendResponse(wrapper.getChFreq(atoi(chID)));
+    }else if(strcmp(word, "dcycle")==0){
+        sendResponse(wrapper.getChDcycle(atoi(chID)));
+    }else if(strcmp(word, "drrange")==0){
+        sendResponse(wrapper.getChDrrange(atoi(chID)));
+    }else if(strcmp(word, "status")==0){
+        sendResponse(wrapper.getChStatus(atoi(chID)));
     }
 }
 
