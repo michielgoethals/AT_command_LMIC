@@ -1,20 +1,18 @@
 #pragma once
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include "wrapLmicAT/wrapLmicAt.h"
 #include <cstring>
 #include <cctype>
 
 #define MAX_LENGTH_MESSAGE 127
-#define BAND868 868
+#define DEFAULT_BAUD 52600
 
 using namespace std;
 
 class ReadUartCommand{
     public:
         ReadUartCommand();
-        ReadUartCommand(int rx, int tx);
         void begin(int baudrate);
         void begin();
         char * getCommand();
@@ -39,7 +37,6 @@ class ReadUartCommand{
         void get3Params(char* params, char** param1, char** param2, char** param3);
 
     private:
-        SoftwareSerial mySerial;
         char * command = nullptr;
         WrapLmicAT wrapper;
 };

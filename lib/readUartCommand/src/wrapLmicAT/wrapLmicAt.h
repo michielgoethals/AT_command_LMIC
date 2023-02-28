@@ -32,8 +32,6 @@
 
 #define NET_ID 0x13
 
-typedef const char * LoraParam;
-
 class WrapLmicAT{
     public:
         //set default parameters
@@ -51,12 +49,12 @@ class WrapLmicAT{
     
     public:    
         //mac set command
-        void setDevAddr(LoraParam devaddr); 
-        void setDevEui(LoraParam deveui);
-        void setAppEui(LoraParam appeui);
-        void setNwkskey(LoraParam nwskey);
-        void setAppsKey(LoraParam appskey);
-        void setAppKey(LoraParam appkey);
+        void setDevAddr(char* devaddr); 
+        void setDevEui(char* deveui);
+        void setAppEui(char* appeui);
+        void setNwkskey(char* nwskey);
+        void setAppsKey(char* appskey);
+        void setAppKey(char* appkey);
         void setPwridx(u1_t pwrIndex); //0-5
         void setDr(u1_t dataRate); //0-8
         void setAdr(char* state); 

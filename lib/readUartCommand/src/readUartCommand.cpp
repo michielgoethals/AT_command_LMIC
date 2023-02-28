@@ -1,11 +1,15 @@
 #include "readUartCommand.h"
 
-ReadUartCommand::ReadUartCommand(int rx, int tx): mySerial(rx,tx){
+ReadUartCommand::ReadUartCommand(){
+}
+
+void ReadUartCommand::begin(){
+    begin(DEFAULT_BAUD);
 }
 
 void ReadUartCommand::begin(int baudrate){
-    mySerial.begin(baudrate);
-    mySerial.write("Serial started @STM\r\n");
+    Serial.begin(baudrate);
+    Serial.println("Serial started @STM");
     wrapper.begin();
 }
 
@@ -13,8 +17,8 @@ char * ReadUartCommand::getCommand(){
     char buffer[MAX_LENGTH_MESSAGE];
     int index = 0;
 
-    while(mySerial.available() > 0){
-        buffer[index]= tolower(mySerial.read());
+    while(Serial.available() > 0){
+        buffer[index]= tolower(Serial.read());
         index++;
     }  
     command = new char[index];
@@ -30,16 +34,16 @@ void ReadUartCommand::parseCommand(char* command){
     int len = strlen(word)+1;
  
     if(strcmp(word, "mac") == 0){
-        mySerial.write("mac command found\r\n");
+        Serial.write("mac command found\r\n");
         parseMacCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "sys") == 0){
-        mySerial.write("sys command found\r\n");
+        Serial.write("sys command found\r\n");
         parseSysCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "radio") == 0){
-        mySerial.write("radio command found\r\n");
+        Serial.write("radio command found\r\n");
         parseRadioCommand(getRemainingPart(command, len));
     }else{
-        mySerial.write("no command found\r\n");
+        Serial.write("no command found\r\n");
     }
 }
 
@@ -72,8 +76,6 @@ void ReadUartCommand::parseMacCommand(char* command){
 }
 
 void ReadUartCommand::parseMacTxCommand(char* txCommand){
-    mySerial.write(txCommand);
-
     char* cnf;
     char* portno; 
     char* data;
@@ -234,7 +236,7 @@ void ReadUartCommand::parseRadioCommand(char* command){
 }
 
 void ReadUartCommand::sendResponse(String response){
-    mySerial.println(response);
+    Serial.println(response);
 }
 
 void ReadUartCommand::sendResponse(int response){
@@ -242,7 +244,7 @@ void ReadUartCommand::sendResponse(int response){
 }
 
 void ReadUartCommand::sendResponseHex(int response){
-    mySerial.println(response, HEX);
+    Serial.println(response, HEX);
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){

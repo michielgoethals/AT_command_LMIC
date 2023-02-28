@@ -19,6 +19,7 @@ static u4_t _netid;
 bool joined = false;
 bool packetTx = false;
 
+//getters for LMIC library
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
   for(byte i = 8; i>0; i--){
     buf[8-i] = _appeui[i-1];
@@ -57,9 +58,7 @@ void WrapLmicAT::reset(u2_t band){
         this->band = band;
         Serial.println("Resetted to 434\r\n");
         begin();
-    }else{
-
-    } 
+    }
 }
 
 void WrapLmicAT::tx(char* cnf, u1_t portno, char* data){
@@ -154,14 +153,14 @@ void WrapLmicAT::resume(){
     //LMIC_reset()
 }
 
-void WrapLmicAT::setDevAddr(LoraParam devaddr){
+void WrapLmicAT::setDevAddr(char* devaddr){
     this->devAddr = String(devaddr);
 
     _devaddr = (u4_t)strtol(devaddr,NULL,16); //save to LMIC library format
     devAddrSet = true;
 }
 
-void WrapLmicAT::setDevEui(LoraParam deveui){
+void WrapLmicAT::setDevEui(char* deveui){
     this->devEui = deveui;
 
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
@@ -172,7 +171,7 @@ void WrapLmicAT::setDevEui(LoraParam deveui){
     devEuiSet = true;
 }
 
-void WrapLmicAT::setAppEui(LoraParam appeui){
+void WrapLmicAT::setAppEui(char* appeui){
     this->appEui = String(appeui);
 
     for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
@@ -184,7 +183,7 @@ void WrapLmicAT::setAppEui(LoraParam appeui){
 }
 
 //Keys must be stored in big endian
-void WrapLmicAT::setNwkskey(LoraParam nwkskey){
+void WrapLmicAT::setNwkskey(char* nwkskey){
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(nwkskey+(i*2));
     	tempStr[1] = *(nwkskey+(i*2)+1);
@@ -193,7 +192,7 @@ void WrapLmicAT::setNwkskey(LoraParam nwkskey){
     nwksKeySet = true;
 }
 
-void WrapLmicAT::setAppsKey(LoraParam appskey){
+void WrapLmicAT::setAppsKey(char* appskey){
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appskey+(i*2));
     	tempStr[1] = *(appskey+(i*2)+1);
@@ -202,7 +201,7 @@ void WrapLmicAT::setAppsKey(LoraParam appskey){
     appsKeySet = true;
 }
 
-void WrapLmicAT::setAppKey(LoraParam appkey){
+void WrapLmicAT::setAppKey(char* appkey){
     for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	tempStr[0] = *(appkey+(i*2));
     	tempStr[1] = *(appkey+(i*2)+1);
@@ -234,7 +233,6 @@ void WrapLmicAT::setPwridx(u1_t pwrIndex){
             LMIC.adrTxPow = 16;
         }
         else{
-            //return invalid param
         }
         break;
     }
