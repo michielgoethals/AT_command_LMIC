@@ -16,6 +16,7 @@ class ReadUartCommand{
         void begin(int baudrate);
         void begin();
         char * getCommand();
+
         void parseCommand(char* command);
         void parseMacCommand(char* command);
         void parseMacTxCommand(char* txCommand);
@@ -24,8 +25,11 @@ class ReadUartCommand{
         void parseMacSetChCommand(char* setChCommand);
         void parseMacGetCommand(char* getCommand);
         void parseMacGetChCommand(char* getChcommand);
+
         void parseSysCommand(char* command);
+
         void parseRadioCommand(char* command);
+        
         void sendResponse(String response);
         void sendResponse(int response);
         void sendResponseHex(int response);

@@ -34,7 +34,6 @@ void ReadUartCommand::parseCommand(char* command){
     int len = strlen(word)+1;
  
     if(strcmp(word, "mac") == 0){
-        Serial.write("mac command found\r\n");
         parseMacCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "sys") == 0){
         Serial.write("sys command found\r\n");
@@ -53,19 +52,19 @@ void ReadUartCommand::parseMacCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "reset")==0){
-        wrapper.reset(atoi(getRemainingPart(command,len)));
+        wrapper.macReset(atoi(getRemainingPart(command,len)));
     }else if(strcmp(word, "tx")==0){
         parseMacTxCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "join")==0){
         parseJoinCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"save")== 0){
-        wrapper.save();
+        wrapper.macSave();
     }else if(strcmp(word,"forceENABLE")== 0){
-        wrapper.forceEnable();
+        wrapper.macForceEnable();
     }else if(strcmp(word,"pause")== 0){
-        wrapper.pause();
+        wrapper.macPause();
     }else if(strcmp(word,"resume")== 0){
-        wrapper.pause();
+        wrapper.macResume();
     }else if(strcmp(word,"set")== 0){
         parseMacSetCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"get")== 0){
@@ -82,14 +81,16 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 
     get3Params(txCommand, &cnf, &portno, &data);
 
-    wrapper.tx(cnf, atoi(portno), data);
+    wrapper.macTx(cnf, atoi(portno), data);
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
         if(strcmp(joinMethod, "otaa")==0){
-            wrapper.joinOtaa();
+            wrapper.macJoinOtaa();
         }else if(strcmp(joinMethod, "abp")==0){
-            wrapper.joinABP();
+            wrapper.macJoinABP();
+        }else{
+            Serial.print("invalid_param");
         }
 }
 
@@ -228,7 +229,13 @@ void ReadUartCommand::parseMacGetChCommand(char* getChCommand){
 }
 
 void ReadUartCommand::parseSysCommand(char* command){
-
+    char * word;
+    word = strtok(command, " ");
+    int len = strlen(word)+1;
+    
+    if(strcmp(word, "reset")==0){
+        wrapper.sysReset();
+    }
 }
 
 void ReadUartCommand::parseRadioCommand(char* command){
