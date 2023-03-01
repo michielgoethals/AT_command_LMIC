@@ -48,43 +48,52 @@ void WrapLmicAT::begin(){
     LMIC.dn2Dr = 3;
 }
 
-void WrapLmicAT::reset(u2_t band){
+void WrapLmicAT::macReset(u2_t band){
     joined = false;
-    if(band == 868){
+    if(band == 868 | band == 433){
         this->band = band;
-        Serial.write("Resetted to 868\r\n");
-        begin();
-    }else if(band == 434){
-        this->band = band;
-        Serial.println("Resetted to 434\r\n");
-        begin();
+        Serial.println("ok");  
+    }else{
+        Serial.println("invalid_param");
     }
 }
 
-void WrapLmicAT::tx(char* cnf, u1_t portno, char* data){
+void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
-
-    if (LMIC.opmode & OP_TXRXPEND) {
-        Serial.println(F("cannot transmit busy")); 
-    }else{
-        if(joined == true){
-            if(strcmp(cnf, "cnf")==0){
+    if(paused){
+        Serial.println("mac_paused");
+    }else if(!joined){
+        Serial.println("not_joined");
+    }else if (LMIC.opmode & OP_TXRXPEND){
+        Serial.println("busy"); 
+    }else if (sizeof(datatx)-1 > sizeof(LMIC.pendTxData)){
+        Serial.println("invalid_data_len");
+    }else if(portno > 0 & portno < 224){
+        if(strcmp(cnf, "cnf")==0){
                 LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1); //do not change datarate as in RN module
                 packetTx=true;
-            }else if (strcmp(cnf, "uncnf")==0){
+        }else if (strcmp(cnf, "uncnf")==0){
                 LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
                 packetTx=true;
-            }
         }
     }
+    else{
+        Serial.println("invalid_param");
+    }
+    
     while(packetTx){ // This makes it blocking
         os_runloop_once();
     }    
 }
 
-void WrapLmicAT::joinOtaa(){
-    if(devEuiSet && appEuiSet && appKeySet){
-        
+void WrapLmicAT::macJoinOtaa(){
+    if(paused){
+        Serial.println("mac_paused");
+    }else if (LMIC.opmode & OP_TXRXPEND){
+        Serial.println("busy"); 
+    }else if(!devEuiSet && !appEuiSet && !appKeySet){
+        Serial.println("keys_not_init");
+    }else{
         LMIC_startJoining();
         while(!joined){
             os_runloop_once();
@@ -97,25 +106,28 @@ void WrapLmicAT::joinOtaa(){
     }
 }
 
-void WrapLmicAT::joinABP(){
-    if(devAddrSet && nwksKeySet && appsKeySet){
+void WrapLmicAT::macJoinABP(){
+    if(paused){
+        Serial.println("mac_paused");
+    }else if (LMIC.opmode & OP_TXRXPEND) {
+        Serial.println("busy"); 
+    }else if(!devEuiSet && !appEuiSet && !appKeySet){
+        Serial.println("keys_not_init");
+    }else{
         LMIC_setSession(NET_ID,_devaddr, _nwkskey, _appskey);
-        
         joined = true;
 
         //TO DO ABP joining 
-
     }
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
-void WrapLmicAT::save(){
+void WrapLmicAT::macSave(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_BAND, band); //2 bytes
 
     for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
-        Serial.println(_deveui[i],HEX);
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_DEVEUI+i, _deveui[i]);
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_APPEUI+i, _appeui[i]);
     }
@@ -135,29 +147,38 @@ void WrapLmicAT::save(){
     }
 
     HAL_FLASHEx_DATAEEPROM_Lock();
+    Serial.println("ok");
 }
 
-void WrapLmicAT::forceEnable(){
-
+//disables silent immediatly state
+void WrapLmicAT::macForceEnable(){
+    Serial.println("ok");
 }
 
-//pause mac
-void WrapLmicAT::pause(){
+//pause mac functionality replies time interval (ms) for how long it can be paused
+//0 = can't be paused
+//4294967295 = mac in idle 
+void WrapLmicAT::macPause(){
     paused = 1;
-    //LMIC_shutdown();
+    //TODO: calculate time and return it
 }
 
 //resume mac
-void WrapLmicAT::resume(){
+void WrapLmicAT::macResume(){
     paused = 0;
-    //LMIC_reset()
+    Serial.println("ok");
 }
 
 void WrapLmicAT::setDevAddr(char* devaddr){
-    this->devAddr = String(devaddr);
 
     _devaddr = (u4_t)strtol(devaddr,NULL,16); //save to LMIC library format
-    devAddrSet = true;
+    if(_devaddr < sizeof(u4_t)){
+        this->devAddr = String(devaddr);
+        devAddrSet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
+    }
 }
 
 void WrapLmicAT::setDevEui(char* deveui){
@@ -169,6 +190,7 @@ void WrapLmicAT::setDevEui(char* deveui){
     	*(_deveui+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
     devEuiSet = true;
+    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppEui(char* appeui){
@@ -180,6 +202,7 @@ void WrapLmicAT::setAppEui(char* appeui){
     	*(_appeui+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
     appEuiSet = true;
+    Serial.println("ok");
 }
 
 //Keys must be stored in big endian
@@ -190,6 +213,7 @@ void WrapLmicAT::setNwkskey(char* nwkskey){
     	*(_nwkskey+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
     nwksKeySet = true;
+    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppsKey(char* appskey){
@@ -199,6 +223,7 @@ void WrapLmicAT::setAppsKey(char* appskey){
     	*(_appskey+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
     appsKeySet = true;
+    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppKey(char* appkey){
@@ -208,6 +233,7 @@ void WrapLmicAT::setAppKey(char* appkey){
     	*(_appkey+i) = (u1_t)strtol(tempStr, NULL, 16);
     }
     appKeySet = true;
+    Serial.println("ok");
 }
 
 void WrapLmicAT::setPwridx(u1_t pwrIndex){
@@ -506,6 +532,10 @@ String WrapLmicAT::getChStatus(u1_t chID){
     return status;
 }
 
+void WrapLmicAT::sysReset(){
+
+}
+
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
     Serial.print(": ");
@@ -523,10 +553,10 @@ void onEvent (ev_t ev) {
             Serial.println(F("EV_BEACON_TRACKED"));
             break;
         case EV_JOINING:
-            Serial.println(F("EV_JOINING"));
+            Serial.println("ok");
             break;
         case EV_JOINED:
-            Serial.println(F("EV_JOINED"));
+            Serial.println("accepted");
             joined = true;
             break;
         case EV_JOIN_FAILED:
@@ -536,15 +566,22 @@ void onEvent (ev_t ev) {
             Serial.println(F("EV_REJOIN_FAILED"));
             break;
         case EV_TXCOMPLETE:
-            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            Serial.println("mac_tx_ok");
             if (LMIC.txrxFlags & TXRX_ACK)
-              Serial.println(F("Received ack"));
+              Serial.println("mac_rx");
             if (LMIC.dataLen) {
               Serial.println(F("Received "));
               Serial.println(LMIC.dataLen);
               Serial.println(F(" bytes of payload"));
             }
             packetTx = false;
+            break;
+        case EV_TXSTART:
+            //packet was forwarded for transmission
+            Serial.println("ok");
+            break;
+        case EV_TXCANCELED:
+            Serial.println(F("mac_err"));
             break;
         case EV_LOST_TSYNC:
             Serial.println(F("EV_LOST_TSYNC"));
@@ -562,16 +599,10 @@ void onEvent (ev_t ev) {
         case EV_LINK_ALIVE:
             Serial.println(F("EV_LINK_ALIVE"));
             break;
-        case EV_TXSTART:
-            Serial.println(F("EV_TXSTART"));
-            break;
-        case EV_TXCANCELED:
-            Serial.println(F("EV_TXCANCELED"));
-            break;
         case EV_RXSTART:
             break;
         case EV_JOIN_TXCOMPLETE:
-            Serial.println(F("EV_JOIN_TXCOMPLETE: no JoinAccept"));
+            Serial.println("denied");
             break;
         default:
             Serial.print(F("Unknown event: "));

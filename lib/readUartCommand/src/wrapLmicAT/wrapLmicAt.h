@@ -38,14 +38,14 @@ class WrapLmicAT{
         void begin();
     public:
         //mac commands
-        void reset(u2_t band);
-        void tx(char* cnf, u1_t portno, char* data);
-        void joinOtaa();
-        void joinABP();
-        void save();
-        void forceEnable();
-        void pause();
-        void resume();
+        void macReset(u2_t band);
+        void macTx(char* cnf, u1_t portno, char* data);
+        void macJoinOtaa();
+        void macJoinABP();
+        void macSave();
+        void macForceEnable();
+        void macPause();
+        void macResume();
     
     public:    
         //mac set command
@@ -90,7 +90,10 @@ class WrapLmicAT{
         u2_t getChDcycle(u1_t chID);
         u2_t getChDrrange(u1_t chID);
         String getChStatus(u1_t chID);
-       
+
+        //sys commands
+        void sysReset();
+        
     private:
         //OTAA 
         
