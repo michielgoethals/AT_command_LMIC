@@ -160,6 +160,7 @@ void WrapLmicAT::macForceEnable(){
 //4294967295 = mac in idle 
 void WrapLmicAT::macPause(){
     paused = 1;
+    Serial.println("ok");
     //TODO: calculate time and return it
 }
 
@@ -170,10 +171,11 @@ void WrapLmicAT::macResume(){
 }
 
 void WrapLmicAT::setDevAddr(char* devaddr){
-
-    _devaddr = (u4_t)strtol(devaddr,NULL,16); //save to LMIC library format
-    if(_devaddr < sizeof(u4_t)){
+    if(strlen(devaddr) < LORA_EUI_SIZE+1){
         this->devAddr = String(devaddr);
+
+        _devaddr = (u4_t)strtol(devaddr,NULL,16);
+
         devAddrSet = true;
         Serial.println("ok");
     }else{
@@ -182,58 +184,83 @@ void WrapLmicAT::setDevAddr(char* devaddr){
 }
 
 void WrapLmicAT::setDevEui(char* deveui){
-    this->devEui = deveui;
+    if(strlen(deveui) < (LORA_EUI_SIZE*2)+1){
+        this->devEui = String(deveui);
 
-    for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
-    	tempStr[0] = *(deveui+(i*2));
-    	tempStr[1] = *(deveui+(i*2)+1);
-    	*(_deveui+i) = (u1_t)strtol(tempStr, NULL, 16);
+        for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
+    	    tempStr[0] = *(deveui+(i*2));
+    	    tempStr[1] = *(deveui+(i*2)+1);
+    	    *(_deveui+i) = (u1_t)strtol(tempStr, NULL, 16);
+        }
+
+        devEuiSet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
-    devEuiSet = true;
-    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppEui(char* appeui){
-    this->appEui = String(appeui);
+    if(strlen(appeui) < (LORA_EUI_SIZE*2)+1){
+        this->appEui = String(appeui);
 
-    for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
-    	tempStr[0] = *(appeui+(i*2));
-    	tempStr[1] = *(appeui+(i*2)+1);
-    	*(_appeui+i) = (u1_t)strtol(tempStr, NULL, 16);
+        for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
+            tempStr[0] = *(appeui+(i*2));
+            tempStr[1] = *(appeui+(i*2)+1);
+            *(_appeui+i) = (u1_t)strtol(tempStr, NULL, 16);
+        }
+
+        appEuiSet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
-    appEuiSet = true;
-    Serial.println("ok");
 }
 
 //Keys must be stored in big endian
 void WrapLmicAT::setNwkskey(char* nwkskey){
-    for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
-    	tempStr[0] = *(nwkskey+(i*2));
-    	tempStr[1] = *(nwkskey+(i*2)+1);
-    	*(_nwkskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+    if(strlen(nwkskey) < (LORA_KEY_SIZE*2)+1){
+        for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
+            tempStr[0] = *(nwkskey+(i*2));
+            tempStr[1] = *(nwkskey+(i*2)+1);
+            *(_nwkskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+        }
+
+        nwksKeySet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
-    nwksKeySet = true;
-    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppsKey(char* appskey){
-    for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
-    	tempStr[0] = *(appskey+(i*2));
-    	tempStr[1] = *(appskey+(i*2)+1);
-    	*(_appskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+    if(strlen(appskey) < (LORA_KEY_SIZE*2)+1){
+        for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
+            tempStr[0] = *(appskey+(i*2));
+            tempStr[1] = *(appskey+(i*2)+1);
+            *(_appskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+        }
+
+        appsKeySet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
-    appsKeySet = true;
-    Serial.println("ok");
 }
 
 void WrapLmicAT::setAppKey(char* appkey){
-    for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
-    	tempStr[0] = *(appkey+(i*2));
-    	tempStr[1] = *(appkey+(i*2)+1);
-    	*(_appkey+i) = (u1_t)strtol(tempStr, NULL, 16);
+    if(strlen(appkey) < LORA_KEY_SIZE + 1){
+        for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
+    	    tempStr[0] = *(appkey+(i*2));
+    	    tempStr[1] = *(appkey+(i*2)+1);
+    	    *(_appkey+i) = (u1_t)strtol(tempStr, NULL, 16);
+        }
+
+        appKeySet = true;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
-    appKeySet = true;
-    Serial.println("ok");
 }
 
 void WrapLmicAT::setPwridx(u1_t pwrIndex){
@@ -537,20 +564,18 @@ void WrapLmicAT::sysReset(){
 }
 
 void onEvent (ev_t ev) {
-    Serial.print(os_getTime());
-    Serial.print(": ");
     switch(ev) {
         case EV_SCAN_TIMEOUT:
-            Serial.println(F("EV_SCAN_TIMEOUT"));
+            Serial.println("EV_SCAN_TIMEOUT");
             break;
         case EV_BEACON_FOUND:
-            Serial.println(F("EV_BEACON_FOUND"));
+            Serial.println("EV_BEACON_FOUND");
             break;
         case EV_BEACON_MISSED:
-            Serial.println(F("EV_BEACON_MISSED"));
+            Serial.println("EV_BEACON_MISSED");
             break;
         case EV_BEACON_TRACKED:
-            Serial.println(F("EV_BEACON_TRACKED"));
+            Serial.println("EV_BEACON_TRACKED");
             break;
         case EV_JOINING:
             Serial.println("ok");
@@ -560,44 +585,44 @@ void onEvent (ev_t ev) {
             joined = true;
             break;
         case EV_JOIN_FAILED:
-            Serial.println(F("EV_JOIN_FAILED"));
+            Serial.println("EV_JOIN_FAILED");
             break;
         case EV_REJOIN_FAILED:
-            Serial.println(F("EV_REJOIN_FAILED"));
+            Serial.println("EV_REJOIN_FAILED");
             break;
         case EV_TXCOMPLETE:
-            Serial.println("mac_tx_ok");
-            if (LMIC.txrxFlags & TXRX_ACK)
-              Serial.println("mac_rx");
-            if (LMIC.dataLen) {
-              Serial.println(F("Received "));
-              Serial.println(LMIC.dataLen);
-              Serial.println(F(" bytes of payload"));
+            if (LMIC.txrxFlags & TXRX_ACK){ //if server ack the message
+                Serial.print("mac_rx ");
+                Serial.print(String(LMIC.dataBeg-1)); //port of received ack
+            }else{
+                Serial.println("mac_tx_ok");
             }
             packetTx = false;
             break;
         case EV_TXSTART:
             //packet was forwarded for transmission
-            Serial.println("ok");
+            if(joined){
+                Serial.println("ok");
+            }
             break;
         case EV_TXCANCELED:
-            Serial.println(F("mac_err"));
+            Serial.println("mac_err");
             break;
         case EV_LOST_TSYNC:
-            Serial.println(F("EV_LOST_TSYNC"));
+            Serial.println("EV_LOST_TSYNC");
             break;
         case EV_RESET:
             Serial.println(F("EV_RESET"));
             break;
         case EV_RXCOMPLETE:
             // data received in ping slot
-            Serial.println(F("EV_RXCOMPLETE"));
+            Serial.println("EV_RXCOMPLETE");
             break;
         case EV_LINK_DEAD:
-            Serial.println(F("EV_LINK_DEAD"));
+            Serial.println("EV_LINK_DEAD");
             break;
         case EV_LINK_ALIVE:
-            Serial.println(F("EV_LINK_ALIVE"));
+            Serial.println("EV_LINK_ALIVE");
             break;
         case EV_RXSTART:
             break;
@@ -605,7 +630,7 @@ void onEvent (ev_t ev) {
             Serial.println("denied");
             break;
         default:
-            Serial.print(F("Unknown event: "));
+            Serial.print("Unknown event: ");
             Serial.println((unsigned) ev);
             break;
     }

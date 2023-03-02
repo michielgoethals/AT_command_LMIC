@@ -36,13 +36,13 @@ void ReadUartCommand::parseCommand(char* command){
     if(strcmp(word, "mac") == 0){
         parseMacCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "sys") == 0){
-        Serial.write("sys command found\r\n");
+        Serial.println("sys command found");
         parseSysCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "radio") == 0){
-        Serial.write("radio command found\r\n");
+        Serial.println("radio command found");
         parseRadioCommand(getRemainingPart(command, len));
     }else{
-        Serial.write("no command found\r\n");
+        Serial.println("no command found");
     }
 }
 
@@ -90,7 +90,7 @@ void ReadUartCommand::parseJoinCommand(char* joinMethod){
         }else if(strcmp(joinMethod, "abp")==0){
             wrapper.macJoinABP();
         }else{
-            Serial.print("invalid_param");
+            Serial.println("invalid_param");
         }
 }
 
