@@ -15,7 +15,7 @@ void loop(){
     reader.parseCommand(command);
   }
 
-  delay(1500);
+  delay(500);
 
   delete[] command;
 }

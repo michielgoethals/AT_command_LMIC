@@ -106,6 +106,7 @@ class WrapLmicAT{
 
         //ABP
         String devAddr = "00000000";
+        
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;

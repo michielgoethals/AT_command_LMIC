@@ -18,6 +18,7 @@ static u4_t _netid;
 
 bool joined = false;
 bool packetTx = false;
+bool join_failed = false;
 
 //getters for LMIC library
 void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
@@ -91,18 +92,24 @@ void WrapLmicAT::macJoinOtaa(){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND){
         Serial.println("busy"); 
-    }else if(!devEuiSet && !appEuiSet && !appKeySet){
+    }else if(!(devEuiSet && appEuiSet && appKeySet)){
         Serial.println("keys_not_init");
     }else{
         LMIC_startJoining();
         while(!joined){
             os_runloop_once();
         }
+        
+        if(joined){
+            LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
+            char buffer[LORA_EUI_SIZE];
+            itoa(_devaddr, buffer, 16);
+            devAddr = String(buffer); //get devaddr to return in mac get devaddr
 
-        LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
-        devAddr = String(_devaddr); //get devaddr to return in mac get devaddr
+            LMIC_setLinkCheckMode(linkchk);
 
-        LMIC_setLinkCheckMode(linkchk);
+            join_failed = false;
+        }
     }
 }
 
@@ -111,10 +118,10 @@ void WrapLmicAT::macJoinABP(){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println("busy"); 
-    }else if(!devEuiSet && !appEuiSet && !appKeySet){
+    }else if(!(devAddrSet && nwksKeySet && appsKeySet)){
         Serial.println("keys_not_init");
     }else{
-        LMIC_setSession(NET_ID,_devaddr, _nwkskey, _appskey);
+        LMIC_setSession(NET_ID, _devaddr, _nwkskey, _appskey);
         joined = true;
 
         //TO DO ABP joining 
@@ -249,7 +256,7 @@ void WrapLmicAT::setAppsKey(char* appskey){
 }
 
 void WrapLmicAT::setAppKey(char* appkey){
-    if(strlen(appkey) < LORA_KEY_SIZE + 1){
+    if(strlen(appkey) < (LORA_KEY_SIZE*2) + 1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	    tempStr[0] = *(appkey+(i*2));
     	    tempStr[1] = *(appkey+(i*2)+1);
