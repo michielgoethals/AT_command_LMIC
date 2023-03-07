@@ -96,7 +96,7 @@ void WrapLmicAT::macJoinOtaa(){
         Serial.println("keys_not_init");
     }else{
         LMIC_startJoining();
-        while(!joined){
+        while(!joined && !join_failed){
             os_runloop_once();
         }
         
@@ -107,9 +107,9 @@ void WrapLmicAT::macJoinOtaa(){
             devAddr = String(buffer); //get devaddr to return in mac get devaddr
 
             LMIC_setLinkCheckMode(linkchk);
-
-            join_failed = false;
         }
+
+        join_failed = false;
     }
 }
 
@@ -121,10 +121,11 @@ void WrapLmicAT::macJoinABP(){
     }else if(!(devAddrSet && nwksKeySet && appsKeySet)){
         Serial.println("keys_not_init");
     }else{
-        LMIC_setSession(NET_ID, _devaddr, _nwkskey, _appskey);
+        //nwkskey & appskey are already set
+        LMIC_setSession(NET_ID, _devaddr, NULL, NULL);
         joined = true;
-
-        //TO DO ABP joining 
+        Serial.println("ok");
+        Serial.println("accepted");
     }
 }
 
@@ -146,12 +147,14 @@ void WrapLmicAT::macSave(){
     }
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_DEVADDR, _devaddr); //4 bytes
+
+    /*
     for(u1_t i = 0; i< MAX_CHANNELS; i++){
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + 9*i, LMIC.channelFreq[i]);
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.bands[LMIC.channelFreq[i] & 0x3].txcap);
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_HALFWORD, EEPROM_START_ADDR_CH_DRRANGE + 9*i, LMIC.channelDrMap[i]);
         HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS + 9*i, LMIC.channelMap << i);
-    }
+    } */
 
     HAL_FLASHEx_DATAEEPROM_Lock();
     Serial.println("ok");
@@ -231,6 +234,7 @@ void WrapLmicAT::setNwkskey(char* nwkskey){
             tempStr[0] = *(nwkskey+(i*2));
             tempStr[1] = *(nwkskey+(i*2)+1);
             *(_nwkskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+            *(LMIC.nwkKey+i) = (u1_t)strtol(tempStr, NULL, 16);
         }
 
         nwksKeySet = true;
@@ -246,6 +250,7 @@ void WrapLmicAT::setAppsKey(char* appskey){
             tempStr[0] = *(appskey+(i*2));
             tempStr[1] = *(appskey+(i*2)+1);
             *(_appskey+i) = (u1_t)strtol(tempStr, NULL, 16);
+            *(LMIC.artKey+i) = (u1_t)strtol(tempStr, NULL, 16);
         }
 
         appsKeySet = true;
@@ -551,8 +556,26 @@ u2_t WrapLmicAT::getChDcycle(u1_t chID){
 }
 
 //get
-u2_t WrapLmicAT::getChDrrange(u1_t chID){
-    return LMIC.channelDrMap[chID];
+String WrapLmicAT::getChDrrange(u1_t chID){
+    u2_t mask = LMIC.channelDrMap[chID];
+
+    u1_t minRange = 0;
+    u1_t maxRange = 15;
+
+    if(mask != 0){
+        while (((mask >> minRange) & 1) == 0) {
+        minRange++;
+        }
+
+        while (((mask >> maxRange) & 1) == 0) {
+        maxRange--;
+        }
+    }else{
+        minRange = 0;
+        maxRange = 0;
+    } 
+
+    return String(minRange) + " " + String(maxRange);
 }
 
 String WrapLmicAT::getChStatus(u1_t chID){
@@ -635,6 +658,7 @@ void onEvent (ev_t ev) {
             break;
         case EV_JOIN_TXCOMPLETE:
             Serial.println("denied");
+            join_failed = true;
             break;
         default:
             Serial.print("Unknown event: ");
