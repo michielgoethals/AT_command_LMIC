@@ -133,6 +133,8 @@ void WrapLmicAT::macJoinABP(){
 void WrapLmicAT::macSave(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
+    HAL_FLASHEx_DATAEEPROM_Erase(EEPROM_START_ADDR_BAND);
+
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_BAND, band); //2 bytes
 
     for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
@@ -148,13 +150,14 @@ void WrapLmicAT::macSave(){
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_DEVADDR, _devaddr); //4 bytes
 
-    /*
-    for(u1_t i = 0; i< MAX_CHANNELS; i++){
-        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + 9*i, LMIC.channelFreq[i]);
-        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.bands[LMIC.channelFreq[i] & 0x3].txcap);
-        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_HALFWORD, EEPROM_START_ADDR_CH_DRRANGE + 9*i, LMIC.channelDrMap[i]);
-        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS + 9*i, LMIC.channelMap << i);
-    } */
+
+    for(u1_t i = 0; i < MAX_CHANNELS; i++){
+        Serial.println(LMIC.channelFreq[i]);
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + (9*i), LMIC.channelFreq[i]);
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.bands[LMIC.channelFreq[i] & 0x3].txcap);
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_HALFWORD, EEPROM_START_ADDR_CH_DRRANGE + 9*i, LMIC.channelDrMap[i]);
+        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS + 9*i, LMIC.channelMap << i);
+    } 
 
     HAL_FLASHEx_DATAEEPROM_Lock();
     Serial.println("ok");
