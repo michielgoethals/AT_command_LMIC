@@ -152,7 +152,7 @@ void WrapLmicAT::macSave(){
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ, LMIC.channelFreq[0]);
     
-
+    //this for loop makes endless loop
     for(u1_t i = 0; i < MAX_CHANNELS; i++){
         //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + (9*i), LMIC.channelFreq[i]);
         //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.bands[LMIC.channelFreq[i] & 0x3].txcap);
