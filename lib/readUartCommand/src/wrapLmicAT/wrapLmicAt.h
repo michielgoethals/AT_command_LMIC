@@ -8,11 +8,11 @@
 #include <cstring>
 
 // LoRaWAN LMIC constants
-#define LMIC_NSS_PIN 				   10
-#define LMIC_RST_PIN 				   5
-#define LMIC_DIO0_PIN 				   2
-#define LMIC_DIO1_PIN 				   3
-#define LMIC_DIO2_PIN 				   4
+#define LMIC_NSS_PIN 				   PA4
+#define LMIC_RST_PIN 				   PB14
+#define LMIC_DIO0_PIN 				   PA10
+#define LMIC_DIO1_PIN 				   PA11
+#define LMIC_DIO2_PIN 				   PA12
 
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16

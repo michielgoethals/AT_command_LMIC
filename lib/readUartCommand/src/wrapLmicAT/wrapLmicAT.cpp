@@ -51,6 +51,8 @@ void WrapLmicAT::begin(){
 
 void WrapLmicAT::macReset(u2_t band){
     joined = false;
+    LMIC_unjoin();
+    begin();
     if(band == 868 | band == 433){
         this->band = band;
         Serial.println("ok");  
@@ -66,31 +68,34 @@ void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
         Serial.println("mac_paused");
     }else if(!joined){
         Serial.println("not_joined");
-    }else if(portno > 224){
+    }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
         if(strcmp(cnf, "cnf")==0){
                 result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1); //do not change datarate as in RN module
                 packetTx=true;
-        }else if (strcmp(cnf, "uncnf")==0){
+        }else if(strcmp(cnf, "uncnf")==0){
                 result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
                 packetTx=true;
         }
+
+    switch (result){
+        case LMIC_ERROR_SUCCESS:
+            Serial.println("ok");
+            break;
+        case LMIC_ERROR_TX_BUSY:
+            Serial.println("busy");
+            break;
+        case LMIC_ERROR_TX_TOO_LARGE:
+            Serial.println("invalid_data_len");
+            break;
+        default:
+            break;
+    }
+
     }else{
         Serial.println("invalid_param");
     }
 
-    switch (result){
-    case LMIC_ERROR_SUCCESS:
-        Serial.println("ok");
-        break;
-    case LMIC_ERROR_TX_BUSY:
-        Serial.println("busy");
-        break;
-    case LMIC_ERROR_TX_TOO_LARGE:
-        Serial.println("invalid_data_len");
-        break;
-    default:
-        break;
-    }
+    
     
     while(packetTx){ // This makes it blocking
         os_runloop_once();
