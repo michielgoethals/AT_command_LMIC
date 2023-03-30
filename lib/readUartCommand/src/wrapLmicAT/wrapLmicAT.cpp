@@ -19,28 +19,27 @@ static u4_t _netid;
 bool joined = false;
 bool packetTx = false;
 bool join_failed = false;
+bool otaa = false;
+bool abp = true;
 
 //getters for LMIC library
-void os_getArtEui (u1_t* buf) { // LMIC expects reverse from TTN
-  for(byte i = 8; i>0; i--){
-    buf[8-i] = _appeui[i-1];
-  }
+// LMIC expects reverse from TTN
+void os_getArtEui (u1_t* buf) {
+    for(byte i = 8; i>0; i--){buf[8-i] = _appeui[i-1];}
 }
-
-void os_getDevEui (u1_t* buf) { // LMIC expects reverse from TTN
-  for(byte i = 8; i>0; i--){
-    buf[8-i] = _deveui[i-1];
-  }
+// LMIC expects reverse from TTN
+void os_getDevEui (u1_t* buf) {
+    for(byte i = 8; i>0; i--){buf[8-i] = _deveui[i-1];}
 }
-
-void os_getDevKey (u1_t* buf) {  // no reverse here
-	memcpy(buf, _appkey, 16);
-} 
-
+// no reverse here
+void os_getDevKey (u1_t* buf) {
+    memcpy(buf, _appkey, 16); 
+}
+    
 void WrapLmicAT::begin(){
     os_init();
     LMIC_reset();
-    LMIC_setDrTxpow(dr,KEEP_TXPOW); //default txpow is 16dBm
+    LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
     setRetX(retX);
     LMIC_setAdrMode(adr);
@@ -50,8 +49,10 @@ void WrapLmicAT::begin(){
 }
 
 void WrapLmicAT::macReset(u2_t band){
-    joined = false;
     LMIC_unjoin();
+    joined = false;
+    otaa = false;
+    abp = false;
     begin();
     if(band == 868 | band == 433){
         this->band = band;
@@ -64,6 +65,7 @@ void WrapLmicAT::macReset(u2_t band){
 void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
     int result = 0;
+
     if(paused){
         Serial.println("mac_paused");
     }else if(!joined){
@@ -76,6 +78,8 @@ void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
                 result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
                 packetTx=true;
         }
+
+        
 
     switch (result){
         case LMIC_ERROR_SUCCESS:
@@ -96,10 +100,9 @@ void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
     }
 
     
-    
     while(packetTx){ // This makes it blocking
         os_runloop_once();
-    }    
+    }
 }
 
 void WrapLmicAT::macJoinOtaa(){
@@ -110,6 +113,7 @@ void WrapLmicAT::macJoinOtaa(){
     }else if(!(devEuiSet && appEuiSet && appKeySet)){
         Serial.println("keys_not_init");
     }else{
+        otaa = true;
         LMIC_startJoining();
         while(!joined && !join_failed){
             os_runloop_once();
@@ -139,8 +143,15 @@ void WrapLmicAT::macJoinABP(){
         //nwkskey & appskey are already set
         LMIC_setSession(NET_ID, _devaddr, NULL, NULL);
         joined = true;
+        abp = true;
         Serial.println("ok");
         Serial.println("accepted");
+        
+        LMIC.seqnoDn = *(u4_t*)EEPROM_START_ADDR_FCNTDOWN;
+        LMIC.seqnoUp = *(u4_t*)EEPROM_START_ADDR_FCNTUP;
+
+        Serial.println(LMIC.seqnoDn);
+        Serial.println(LMIC.seqnoUp);
     }
 }
 
@@ -165,7 +176,7 @@ void WrapLmicAT::macSave(){
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_DEVADDR, _devaddr); //4 bytes
 
-    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ, LMIC.channelFreq[0]);
+    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ, LMIC.channelFreq[0]);
     
     //this for loop makes endless loop
     for(u1_t i = 0; i < MAX_CHANNELS; i++){
@@ -299,32 +310,37 @@ void WrapLmicAT::setPwridx(u1_t pwrIndex){
     {
     case 1:
         LMIC.adrTxPow = 14;
+        Serial.println("ok");
         break;
     case 2:
         LMIC.adrTxPow = 12;
+        Serial.println("ok");
         break;
     case 3:
         LMIC.adrTxPow = 10;
+        Serial.println("ok");
         break;
     case 4:
         LMIC.adrTxPow = 8;
+        Serial.println("ok");
         break;
     case 5:
         LMIC.adrTxPow = 6;
+        Serial.println("ok");
         break;   
     default:
-        if(band == 434 && pwrIndex == 0){
-            LMIC.adrTxPow = 16;
-        }
-        else{
-        }
+        Serial.println("invalid_param");
         break;
     }
 }
 
-
 void WrapLmicAT::setDr(u1_t dr){
-    LMIC.datarate = dr;
+    if(dr < 8){
+        LMIC.datarate = dr;
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param"); 
+    }
 }
 
 void WrapLmicAT::setAdr(char* state){
@@ -333,9 +349,13 @@ void WrapLmicAT::setAdr(char* state){
     if(strcmp(state, "on")==0){
         adr = 1;
         LMIC_setAdrMode(1);
+        Serial.println("ok");
     }else if(strcmp(state, "off")==0){
         adr = 0;
         LMIC_setAdrMode(0);
+        Serial.println("ok");
+    }else{
+        Serial.println("invalid_param");
     }
 }
 
@@ -374,7 +394,7 @@ void WrapLmicAT::setAr(char* state){
 
 void WrapLmicAT::setRx2(u1_t dr, u4_t freq){
     RX2Updated = 1;
-    LMIC.dn2Dr = dr;
+    setDr(dr);
     LMIC.dn2Freq = freq; 
 }
 
@@ -640,6 +660,15 @@ void onEvent (ev_t ev) {
             Serial.println("EV_REJOIN_FAILED");
             break;
         case EV_TXCOMPLETE:
+            if(abp==true){
+                HAL_FLASHEx_DATAEEPROM_Unlock();
+
+                HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTUP, LMIC.seqnoUp); //4 bytes
+                HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTDOWN, LMIC.seqnoDn); //4 bytes
+
+                HAL_FLASH_Lock();
+            }
+
             if (LMIC.txrxFlags & TXRX_ACK){ //if server ack the message
                 Serial.print("mac_rx ");
                 Serial.print(String(LMIC.dataBeg-1)); //port of received ack

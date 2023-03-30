@@ -85,13 +85,13 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
-        if(strcmp(joinMethod, "otaa")==0){
-            wrapper.macJoinOtaa();
-        }else if(strcmp(joinMethod, "abp")==0){
-            wrapper.macJoinABP();
-        }else{
-            Serial.println("invalid_param");
-        }
+    if(strcmp(joinMethod, "otaa")==0){
+        wrapper.macJoinOtaa();
+    }else if(strcmp(joinMethod, "abp")==0){
+        wrapper.macJoinABP();
+    }else{
+        Serial.println("invalid_param");
+    }
 }
 
 void ReadUartCommand::parseMacSetCommand(char* setCommand){
