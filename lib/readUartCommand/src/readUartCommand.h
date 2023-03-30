@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "wrapLmicAT/wrapMacAt.h"
 #include "wrapLmicAT/wrapSysAt.h"
+#include "wrapLmicAT/wrapRadioAt.h"
 #include <cstring>
 #include <cctype>
 
