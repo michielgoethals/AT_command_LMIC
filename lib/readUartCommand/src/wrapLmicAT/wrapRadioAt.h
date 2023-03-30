@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lmic/oslmic_types.h>
+
 class WrapRadioAt{
     public:
         void rx(u2_t windowSize);
