@@ -1,4 +1,4 @@
-#include "wrapLmicAt.h"
+#include "wrapMacAt.h"
 
 const lmic_pinmap lmic_pins = {
   .nss = LMIC_NSS_PIN,

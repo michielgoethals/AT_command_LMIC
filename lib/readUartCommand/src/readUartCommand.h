@@ -1,12 +1,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include "wrapLmicAT/wrapLmicAt.h"
+#include "wrapLmicAT/wrapMacAt.h"
 #include <cstring>
 #include <cctype>
 
 #define MAX_LENGTH_MESSAGE 127
-#define DEFAULT_BAUD 52600
+#define DEFAULT_BAUD 56700
 
 using namespace std;
 
