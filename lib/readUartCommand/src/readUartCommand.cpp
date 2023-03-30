@@ -10,7 +10,7 @@ void ReadUartCommand::begin(){
 void ReadUartCommand::begin(int baudrate){
     Serial.begin(baudrate);
     Serial.println("Serial started @STM");
-    wrapper.begin();
+    macWrapper.begin();
 }
 
 char * ReadUartCommand::getCommand(){
@@ -52,19 +52,19 @@ void ReadUartCommand::parseMacCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "reset")==0){
-        wrapper.macReset(atoi(getRemainingPart(command,len)));
+        macWrapper.macReset(atoi(getRemainingPart(command,len)));
     }else if(strcmp(word, "tx")==0){
         parseMacTxCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "join")==0){
         parseJoinCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"save")== 0){
-        wrapper.macSave();
+        macWrapper.macSave();
     }else if(strcmp(word,"forceENABLE")== 0){
-        wrapper.macForceEnable();
+        macWrapper.macForceEnable();
     }else if(strcmp(word,"pause")== 0){
-        wrapper.macPause();
+        macWrapper.macPause();
     }else if(strcmp(word,"resume")== 0){
-        wrapper.macResume();
+        macWrapper.macResume();
     }else if(strcmp(word,"set")== 0){
         parseMacSetCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"get")== 0){
@@ -81,14 +81,14 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 
     get3Params(txCommand, &cnf, &portno, &data);
 
-    wrapper.macTx(cnf, atoi(portno), data);
+    macWrapper.macTx(cnf, atoi(portno), data);
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
     if(strcmp(joinMethod, "otaa")==0){
-        wrapper.macJoinOtaa();
+        macWrapper.macJoinOtaa();
     }else if(strcmp(joinMethod, "abp")==0){
-        wrapper.macJoinABP();
+        macWrapper.macJoinABP();
     }else{
         Serial.println("invalid_param");
     }
@@ -102,38 +102,38 @@ void ReadUartCommand::parseMacSetCommand(char* setCommand){
     char* param = getRemainingPart(setCommand,len);
 
     if(strcmp(word, "devaddr")==0){
-        wrapper.setDevAddr(param);
+        macWrapper.setDevAddr(param);
     }else if(strcmp(word, "deveui")==0){
-        wrapper.setDevEui(param);
+        macWrapper.setDevEui(param);
     }else if(strcmp(word, "appeui")==0){
-        wrapper.setAppEui(param);
+        macWrapper.setAppEui(param);
     }else if(strcmp(word, "nwkskey")==0){
-        wrapper.setNwkskey(param);
+        macWrapper.setNwkskey(param);
     }else if(strcmp(word, "appskey")==0){
-        wrapper.setAppsKey(param);
+        macWrapper.setAppsKey(param);
     }else if(strcmp(word, "appkey")==0){
-        wrapper.setAppKey(param);
+        macWrapper.setAppKey(param);
     }else if(strcmp(word, "pwridx")==0){
-        wrapper.setPwridx(atoi(param));
+        macWrapper.setPwridx(atoi(param));
     }else if(strcmp(word, "dr")==0){
-        wrapper.setDr(atoi(param));
+        macWrapper.setDr(atoi(param));
     }else if(strcmp(word, "adr")==0){
-        wrapper.setAdr(param);
+        macWrapper.setAdr(param);
     }else if(strcmp(word, "bat")==0){
-        wrapper.setBat(atoi(param));
+        macWrapper.setBat(atoi(param));
     }else if(strcmp(word, "retx")==0){
-        wrapper.setBat(atoi(param));
+        macWrapper.setBat(atoi(param));
     }else if(strcmp(word, "linkchk")==0){
-        wrapper.setLinkChk(atoi(param));
+        macWrapper.setLinkChk(atoi(param));
     }else if(strcmp(word, "rxdelay1")==0){
-        wrapper.setRxDelay1(atoi(param));
+        macWrapper.setRxDelay1(atoi(param));
     }else if(strcmp(word, "ar")==0){
-        wrapper.setAdr(param);
+        macWrapper.setAdr(param);
     }else if(strcmp(word, "rx2")==0){
         char* dr;
         char* freq;
         get2Params(getRemainingPart(setCommand,len), &dr, &freq);
-        wrapper.setRx2(atoi(dr), atoi(freq));
+        macWrapper.setRx2(atoi(dr), atoi(freq));
     }else if(strcmp(word, "ch")==0){
         parseMacSetChCommand(getRemainingPart(setCommand,len));
     }
@@ -148,23 +148,23 @@ void ReadUartCommand::parseMacSetChCommand(char* setChCommand){
         char* chID;
         char* freq;
         get2Params(getRemainingPart(setChCommand,len), &chID, &freq);
-        wrapper.setChFreq(atoi(chID), atoi(freq));
+        macWrapper.setChFreq(atoi(chID), atoi(freq));
     }else if(strcmp(word, "dcycle")==0){
         char* chID;
         char* dcycle;
         get2Params(getRemainingPart(setChCommand,len), &chID, &dcycle);
-        wrapper.setChDCycle(atoi(chID), atoi(dcycle));
+        macWrapper.setChDCycle(atoi(chID), atoi(dcycle));
     }else if(strcmp(word, "drrange")==0){
         char* chID;
         char* minRange;
         char* maxRange;
         get3Params(getRemainingPart(setChCommand,len), &chID, &minRange, &maxRange);
-        wrapper.setChDrRange(atoi(chID), atoi(minRange), atoi(maxRange));
+        macWrapper.setChDrRange(atoi(chID), atoi(minRange), atoi(maxRange));
     }else if(strcmp(word, "status")==0){
         char* chID;
         char* param2;
         get2Params(getRemainingPart(setChCommand,len), &chID, &param2);
-        wrapper.setChStatus(atoi(chID), param2);
+        macWrapper.setChStatus(atoi(chID), param2);
     }
 }
 
@@ -174,37 +174,37 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
     int len = strlen(word)+1;
 
     if(strcmp(word,"devaddr")==0){
-        sendResponse(wrapper.getDevAddr());
+        sendResponse(macWrapper.getDevAddr());
     }else if(strcmp(word, "deveui")==0){
-        sendResponse(wrapper.getDevEui());
+        sendResponse(macWrapper.getDevEui());
     }else if(strcmp(word, "appeui")==0){
-        sendResponse(wrapper.getAppEui());
+        sendResponse(macWrapper.getAppEui());
     }else if(strcmp(word, "dr")==0){
-        sendResponse(wrapper.getDr());
+        sendResponse(macWrapper.getDr());
     }else if(strcmp(word, "band")==0){
-        sendResponse(wrapper.getBand());
+        sendResponse(macWrapper.getBand());
     }else if(strcmp(word, "pwridx")==0){
-        sendResponse(wrapper.getPwridx());
+        sendResponse(macWrapper.getPwridx());
     }else if(strcmp(word, "adr")==0){
-        sendResponse(wrapper.getAdr());
+        sendResponse(macWrapper.getAdr());
     }else if(strcmp(word, "retx")==0){
-        sendResponse(wrapper.getRetX());
+        sendResponse(macWrapper.getRetX());
     }else if(strcmp(word, "rxdelay1")==0){
-        sendResponse(wrapper.getRxDelay1());
+        sendResponse(macWrapper.getRxDelay1());
     }else if(strcmp(word, "rxdelay2")==0){
-        sendResponse(wrapper.getRxDelay2());
+        sendResponse(macWrapper.getRxDelay2());
     }else if(strcmp(word, "ar")==0){
-        sendResponse(wrapper.getAr());
+        sendResponse(macWrapper.getAr());
     }else if(strcmp(word, "rx2")==0){
-        sendResponse(wrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
+        sendResponse(macWrapper.getRx2(atoi(getRemainingPart(getCommand,len))));
     }else if(strcmp(word, "dcycleps")==0){
-        sendResponse(wrapper.getDcycleps());
+        sendResponse(macWrapper.getDcycleps());
     }else if(strcmp(word, "mrgn")==0){
-        sendResponse(wrapper.getMrgn());
+        sendResponse(macWrapper.getMrgn());
     }else if(strcmp(word, "gwnb")==0){
-        sendResponse(wrapper.getGwnb());
+        sendResponse(macWrapper.getGwnb());
     }else if(strcmp(word, "status")==0){
-        sendResponse(wrapper.getSatus());
+        sendResponse(macWrapper.getSatus());
     }else if(strcmp(word, "ch")==0){
         parseMacGetChCommand(getRemainingPart(getCommand,len));
     }
@@ -218,13 +218,13 @@ void ReadUartCommand::parseMacGetChCommand(char* getChCommand){
     char* chID = getRemainingPart(getChCommand,len);
 
     if(strcmp(word, "freq")==0){
-        sendResponse(wrapper.getChFreq(atoi(chID)));
+        sendResponse(macWrapper.getChFreq(atoi(chID)));
     }else if(strcmp(word, "dcycle")==0){
-        sendResponse(wrapper.getChDcycle(atoi(chID)));
+        sendResponse(macWrapper.getChDcycle(atoi(chID)));
     }else if(strcmp(word, "drrange")==0){
-        sendResponse(wrapper.getChDrrange(atoi(chID)));
+        sendResponse(macWrapper.getChDrrange(atoi(chID)));
     }else if(strcmp(word, "status")==0){
-        sendResponse(wrapper.getChStatus(atoi(chID)));
+        sendResponse(macWrapper.getChStatus(atoi(chID)));
     }
 }
 
@@ -234,7 +234,7 @@ void ReadUartCommand::parseSysCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "reset")==0){
-        wrapper.sysReset();
+        sysWrapper.sysReset(&macWrapper);
     }
 }
 

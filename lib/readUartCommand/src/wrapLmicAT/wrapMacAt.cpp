@@ -36,7 +36,7 @@ void os_getDevKey (u1_t* buf) {
     memcpy(buf, _appkey, 16); 
 }
     
-void WrapLmicAT::begin(){
+void WrapMacAt::begin(){
     os_init();
     LMIC_reset();
     LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
@@ -48,7 +48,7 @@ void WrapLmicAT::begin(){
     LMIC.dn2Dr = 3;
 }
 
-void WrapLmicAT::macReset(u2_t band){
+void WrapMacAt::macReset(u2_t band){
     LMIC_unjoin();
     joined = false;
     otaa = false;
@@ -62,7 +62,7 @@ void WrapLmicAT::macReset(u2_t band){
     }
 }
 
-void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
+void WrapMacAt::macTx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
     int result = 0;
 
@@ -99,13 +99,12 @@ void WrapLmicAT::macTx(char* cnf, u1_t portno, char* data){
         Serial.println("invalid_param");
     }
 
-    
     while(packetTx){ // This makes it blocking
         os_runloop_once();
     }
 }
 
-void WrapLmicAT::macJoinOtaa(){
+void WrapMacAt::macJoinOtaa(){
     if(paused){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND){
@@ -132,7 +131,7 @@ void WrapLmicAT::macJoinOtaa(){
     }
 }
 
-void WrapLmicAT::macJoinABP(){
+void WrapMacAt::macJoinABP(){
     if(paused){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND) {
@@ -156,7 +155,7 @@ void WrapLmicAT::macJoinABP(){
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
-void WrapLmicAT::macSave(){
+void WrapMacAt::macSave(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
     HAL_FLASHEx_DATAEEPROM_Erase(EEPROM_START_ADDR_BAND);
@@ -191,26 +190,26 @@ void WrapLmicAT::macSave(){
 }
 
 //disables silent immediatly state
-void WrapLmicAT::macForceEnable(){
+void WrapMacAt::macForceEnable(){
     Serial.println("ok");
 }
 
 //pause mac functionality replies time interval (ms) for how long it can be paused
 //0 = can't be paused
 //4294967295 = mac in idle 
-void WrapLmicAT::macPause(){
+void WrapMacAt::macPause(){
     paused = 1;
     Serial.println("ok");
     //TODO: calculate time and return it
 }
 
 //resume mac
-void WrapLmicAT::macResume(){
+void WrapMacAt::macResume(){
     paused = 0;
     Serial.println("ok");
 }
 
-void WrapLmicAT::setDevAddr(char* devaddr){
+void WrapMacAt::setDevAddr(char* devaddr){
     if(strlen(devaddr) < LORA_EUI_SIZE+1){
         this->devAddr = String(devaddr);
 
@@ -223,7 +222,7 @@ void WrapLmicAT::setDevAddr(char* devaddr){
     }
 }
 
-void WrapLmicAT::setDevEui(char* deveui){
+void WrapMacAt::setDevEui(char* deveui){
     if(strlen(deveui) < (LORA_EUI_SIZE*2)+1){
         this->devEui = String(deveui);
 
@@ -240,7 +239,7 @@ void WrapLmicAT::setDevEui(char* deveui){
     }
 }
 
-void WrapLmicAT::setAppEui(char* appeui){
+void WrapMacAt::setAppEui(char* appeui){
     if(strlen(appeui) < (LORA_EUI_SIZE*2)+1){
         this->appEui = String(appeui);
 
@@ -258,7 +257,7 @@ void WrapLmicAT::setAppEui(char* appeui){
 }
 
 //Keys must be stored in big endian
-void WrapLmicAT::setNwkskey(char* nwkskey){
+void WrapMacAt::setNwkskey(char* nwkskey){
     if(strlen(nwkskey) < (LORA_KEY_SIZE*2)+1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(nwkskey+(i*2));
@@ -274,7 +273,7 @@ void WrapLmicAT::setNwkskey(char* nwkskey){
     }
 }
 
-void WrapLmicAT::setAppsKey(char* appskey){
+void WrapMacAt::setAppsKey(char* appskey){
     if(strlen(appskey) < (LORA_KEY_SIZE*2)+1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(appskey+(i*2));
@@ -290,7 +289,7 @@ void WrapLmicAT::setAppsKey(char* appskey){
     }
 }
 
-void WrapLmicAT::setAppKey(char* appkey){
+void WrapMacAt::setAppKey(char* appkey){
     if(strlen(appkey) < (LORA_KEY_SIZE*2) + 1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	    tempStr[0] = *(appkey+(i*2));
@@ -305,7 +304,7 @@ void WrapLmicAT::setAppKey(char* appkey){
     }
 }
 
-void WrapLmicAT::setPwridx(u1_t pwrIndex){
+void WrapMacAt::setPwridx(u1_t pwrIndex){
     switch (pwrIndex)
     {
     case 1:
@@ -334,7 +333,7 @@ void WrapLmicAT::setPwridx(u1_t pwrIndex){
     }
 }
 
-void WrapLmicAT::setDr(u1_t dr){
+void WrapMacAt::setDr(u1_t dr){
     if(dr < 8){
         LMIC.datarate = dr;
         Serial.println("ok");
@@ -343,7 +342,7 @@ void WrapLmicAT::setDr(u1_t dr){
     }
 }
 
-void WrapLmicAT::setAdr(char* state){
+void WrapMacAt::setAdr(char* state){
     pwrUpdated = 1;
     nbRepUpdated = 1;
     if(strcmp(state, "on")==0){
@@ -359,16 +358,16 @@ void WrapLmicAT::setAdr(char* state){
     }
 }
 
-void WrapLmicAT::setBat(u1_t level){
+void WrapMacAt::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
 }
 
-void WrapLmicAT::setRetX(u1_t retX){
+void WrapMacAt::setRetX(u1_t retX){
     LMIC.upRepeat = retX;
 }
 
 //TO DO seconds implementation
-void WrapLmicAT::setLinkChk(u2_t sec){
+void WrapMacAt::setLinkChk(u2_t sec){
     if(sec ==0){
         linkchk = 0;
         LMIC_setLinkCheckMode(0);
@@ -379,12 +378,12 @@ void WrapLmicAT::setLinkChk(u2_t sec){
     }
 }
 
-void WrapLmicAT::setRxDelay1(u2_t rxdelay1){
+void WrapMacAt::setRxDelay1(u2_t rxdelay1){
     LMIC.rxDelay = rxdelay1/1000;
 }
 
 //Automatic replay TO DO LMIC Auto reply on;
-void WrapLmicAT::setAr(char* state){
+void WrapMacAt::setAr(char* state){
     if(strcmp(state, "on")==0){
         ar = 1;
     }else if(strcmp(state, "off")==0){
@@ -392,18 +391,18 @@ void WrapLmicAT::setAr(char* state){
     }
 }
 
-void WrapLmicAT::setRx2(u1_t dr, u4_t freq){
+void WrapMacAt::setRx2(u1_t dr, u4_t freq){
     RX2Updated = 1;
     setDr(dr);
     LMIC.dn2Freq = freq; 
 }
 
-void WrapLmicAT::setChFreq(u1_t chID, u4_t frequency){
+void WrapMacAt::setChFreq(u1_t chID, u4_t frequency){
     chUpdated = 1;
     LMIC.channelFreq[chID] = frequency;
 }
 
-void WrapLmicAT::setChDCycle(u1_t chID, u2_t dCycle){
+void WrapMacAt::setChDCycle(u1_t chID, u2_t dCycle){
     chUpdated = 1;
     u2_t actualDcycle = 100/(dCycle + 1); //in %
     u2_t txcap = 1/actualDcycle;
@@ -412,12 +411,12 @@ void WrapLmicAT::setChDCycle(u1_t chID, u2_t dCycle){
     prescalerUpdated = 1;
 }
 
-void WrapLmicAT::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
+void WrapMacAt::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
     chUpdated = 1;
     LMIC.channelDrMap[chID] = DR_RANGE_MAP(minRange, maxRange);
 }
 
-void WrapLmicAT::setChStatus(u1_t chID, char* enable){
+void WrapMacAt::setChStatus(u1_t chID, char* enable){
     chUpdated = 1;
     if(strcmp(enable, "on/r/n")==0){
         LMIC_enableChannel(chID);
@@ -428,27 +427,27 @@ void WrapLmicAT::setChStatus(u1_t chID, char* enable){
     }
 }
 
-String WrapLmicAT::getDevAddr(){
+String WrapMacAt::getDevAddr(){
     return devAddr;
 }
 
-String WrapLmicAT::getDevEui(){
+String WrapMacAt::getDevEui(){
     return devEui;
 }
 
-String WrapLmicAT::getAppEui(){
+String WrapMacAt::getAppEui(){
     return appEui;
 }
 
-u1_t WrapLmicAT::getDr(){
+u1_t WrapMacAt::getDr(){
     return LMIC.datarate;
 }
 
-u2_t WrapLmicAT::getBand(){
+u2_t WrapMacAt::getBand(){
     return band;
 }
 
-u1_t WrapLmicAT::getPwridx(){
+u1_t WrapMacAt::getPwridx(){
     u1_t pwridx = 0;
     switch (LMIC.adrTxPow)
     {
@@ -474,7 +473,7 @@ u1_t WrapLmicAT::getPwridx(){
     return pwridx;
 }
 
-String WrapLmicAT::getAdr(){
+String WrapMacAt::getAdr(){
     String result = "off";
     if(LMIC.adrEnabled==1){
         result = "on";
@@ -482,20 +481,20 @@ String WrapLmicAT::getAdr(){
     return result;
 }
 
-u1_t WrapLmicAT::getRetX(){
+u1_t WrapMacAt::getRetX(){
     return LMIC.upRepeat;
 }
 
-u2_t WrapLmicAT::getRxDelay1(){
+u2_t WrapMacAt::getRxDelay1(){
     return LMIC.rxDelay*1000;
 }
 
-u2_t WrapLmicAT::getRxDelay2(){
+u2_t WrapMacAt::getRxDelay2(){
     return (LMIC.rxDelay*1000)+1000;
 }
 
 //automatic reply on/off
-String WrapLmicAT::getAr(){
+String WrapMacAt::getAr(){
     String result = "off";
     if(ar == 1){
         result = "on";
@@ -504,27 +503,27 @@ String WrapLmicAT::getAr(){
 }
 
 //Second receive window parameters
-String WrapLmicAT::getRx2(u1_t band){
+String WrapMacAt::getRx2(u1_t band){
     return String(LMIC.dn2Dr) + " " + String(LMIC.dn2Freq);
 }
 
 //duty cycle prescaler TO DO
-u2_t WrapLmicAT::getDcycleps(){
+u2_t WrapMacAt::getDcycleps(){
     return LMIC.globalDutyRate;
 }
 
 //margin
-u1_t WrapLmicAT::getMrgn(){
+u1_t WrapMacAt::getMrgn(){
     return LMIC.margin;
 }
 
 //number of gateways received linkchk TO DO 0 if disabled, 1-255 if enabled)
-u1_t WrapLmicAT::getGwnb(){
+u1_t WrapMacAt::getGwnb(){
     return gwnb;
 }   
 
 //2-byte hex representing status of module default 0x00
-u2_t WrapLmicAT::getSatus(){
+u2_t WrapMacAt::getSatus(){
     //clear status reg
     status &= 0b0000000000000000;
     //bit 0: joined
@@ -582,12 +581,12 @@ u2_t WrapLmicAT::getSatus(){
 }
 
 //Get channel frequency
-u4_t WrapLmicAT::getChFreq(u1_t chID){
+u4_t WrapMacAt::getChFreq(u1_t chID){
     return LMIC.channelFreq[chID];
 }
 
 //Get channel duty cycle
-u2_t WrapLmicAT::getChDcycle(u1_t chID){
+u2_t WrapMacAt::getChDcycle(u1_t chID){
     u1_t const band = LMIC.channelFreq[chID] & 0x3;
     u2_t txcap = LMIC.bands[band].txcap;
     u2_t dCycle = 1 / txcap;
@@ -595,7 +594,7 @@ u2_t WrapLmicAT::getChDcycle(u1_t chID){
 }
 
 //get
-String WrapLmicAT::getChDrrange(u1_t chID){
+String WrapMacAt::getChDrrange(u1_t chID){
     u2_t mask = LMIC.channelDrMap[chID];
 
     u1_t minRange = 0;
@@ -617,7 +616,7 @@ String WrapLmicAT::getChDrrange(u1_t chID){
     return String(minRange) + " " + String(maxRange);
 }
 
-String WrapLmicAT::getChStatus(u1_t chID){
+String WrapMacAt::getChStatus(u1_t chID){
     bit_t enabled = LMIC.channelMap << chID;
     String status = "off";
     
@@ -628,7 +627,7 @@ String WrapLmicAT::getChStatus(u1_t chID){
     return status;
 }
 
-void WrapLmicAT::sysReset(){
+void WrapMacAt::sysReset(){
 
 }
 

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "wrapLmicAT/wrapMacAt.h"
+#include "wrapLmicAT/wrapSysAt.h"
 #include <cstring>
 #include <cctype>
 
@@ -42,5 +43,6 @@ class ReadUartCommand{
 
     private:
         char * command = nullptr;
-        WrapLmicAT wrapper;
+        WrapMacAt macWrapper;
+        WrapSysAt sysWrapper;
 };

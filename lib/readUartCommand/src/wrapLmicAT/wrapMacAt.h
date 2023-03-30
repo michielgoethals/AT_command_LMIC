@@ -36,7 +36,7 @@
 
 #define NET_ID 0x13
 
-class WrapLmicAT{
+class WrapMacAt{
     public:
         //set default parameters
         void begin();
