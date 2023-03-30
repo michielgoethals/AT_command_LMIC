@@ -6,5 +6,6 @@ class WrapSysAt{
 private:
 
 public:
-    void sysReset(WrapMacAt *macWrapper);
+    void reset(WrapMacAt *macWrapper);
+    void sleep();
 };

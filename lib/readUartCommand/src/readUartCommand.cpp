@@ -36,7 +36,6 @@ void ReadUartCommand::parseCommand(char* command){
     if(strcmp(word, "mac") == 0){
         parseMacCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "sys") == 0){
-        Serial.println("sys command found");
         parseSysCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "radio") == 0){
         Serial.println("radio command found");
@@ -52,19 +51,19 @@ void ReadUartCommand::parseMacCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "reset")==0){
-        macWrapper.macReset(atoi(getRemainingPart(command,len)));
+        macWrapper.reset(atoi(getRemainingPart(command,len)));
     }else if(strcmp(word, "tx")==0){
         parseMacTxCommand(getRemainingPart(command, len));
     }else if(strcmp(word, "join")==0){
         parseJoinCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"save")== 0){
-        macWrapper.macSave();
+        macWrapper.save();
     }else if(strcmp(word,"forceENABLE")== 0){
-        macWrapper.macForceEnable();
+        macWrapper.forceEnable();
     }else if(strcmp(word,"pause")== 0){
-        macWrapper.macPause();
+        macWrapper.pause();
     }else if(strcmp(word,"resume")== 0){
-        macWrapper.macResume();
+        macWrapper.resume();
     }else if(strcmp(word,"set")== 0){
         parseMacSetCommand(getRemainingPart(command, len));
     }else if(strcmp(word,"get")== 0){
@@ -81,16 +80,16 @@ void ReadUartCommand::parseMacTxCommand(char* txCommand){
 
     get3Params(txCommand, &cnf, &portno, &data);
 
-    macWrapper.macTx(cnf, atoi(portno), data);
+    macWrapper.tx(cnf, atoi(portno), data);
 }
 
 void ReadUartCommand::parseJoinCommand(char* joinMethod){
     if(strcmp(joinMethod, "otaa")==0){
-        macWrapper.macJoinOtaa();
+        macWrapper.joinOtaa();
     }else if(strcmp(joinMethod, "abp")==0){
-        macWrapper.macJoinABP();
+        macWrapper.joinABP();
     }else{
-        Serial.println("invalid_param");
+        sendResponse("invalid_param");
     }
 }
 
@@ -233,8 +232,10 @@ void ReadUartCommand::parseSysCommand(char* command){
     word = strtok(command, " ");
     int len = strlen(word)+1;
     
-    if(strcmp(word, "reset")==0){
-        sysWrapper.sysReset(&macWrapper);
+    if(strcmp(word, "sleep")==0){
+        sysWrapper.sleep();
+    }else if(strcmp(word, "reset")==0){
+        sysWrapper.reset(&macWrapper);
     }
 }
 

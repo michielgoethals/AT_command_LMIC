@@ -48,7 +48,7 @@ void WrapMacAt::begin(){
     LMIC.dn2Dr = 3;
 }
 
-void WrapMacAt::macReset(u2_t band){
+void WrapMacAt::reset(u2_t band){
     LMIC_unjoin();
     joined = false;
     otaa = false;
@@ -62,7 +62,7 @@ void WrapMacAt::macReset(u2_t band){
     }
 }
 
-void WrapMacAt::macTx(char* cnf, u1_t portno, char* data){
+void WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
     int result = 0;
 
@@ -104,7 +104,7 @@ void WrapMacAt::macTx(char* cnf, u1_t portno, char* data){
     }
 }
 
-void WrapMacAt::macJoinOtaa(){
+void WrapMacAt::joinOtaa(){
     if(paused){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND){
@@ -131,7 +131,7 @@ void WrapMacAt::macJoinOtaa(){
     }
 }
 
-void WrapMacAt::macJoinABP(){
+void WrapMacAt::joinABP(){
     if(paused){
         Serial.println("mac_paused");
     }else if (LMIC.opmode & OP_TXRXPEND) {
@@ -155,7 +155,7 @@ void WrapMacAt::macJoinABP(){
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
-void WrapMacAt::macSave(){
+void WrapMacAt::save(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
     HAL_FLASHEx_DATAEEPROM_Erase(EEPROM_START_ADDR_BAND);
@@ -190,21 +190,21 @@ void WrapMacAt::macSave(){
 }
 
 //disables silent immediatly state
-void WrapMacAt::macForceEnable(){
+void WrapMacAt::forceEnable(){
     Serial.println("ok");
 }
 
 //pause mac functionality replies time interval (ms) for how long it can be paused
 //0 = can't be paused
 //4294967295 = mac in idle 
-void WrapMacAt::macPause(){
+void WrapMacAt::pause(){
     paused = 1;
     Serial.println("ok");
     //TODO: calculate time and return it
 }
 
 //resume mac
-void WrapMacAt::macResume(){
+void WrapMacAt::resume(){
     paused = 0;
     Serial.println("ok");
 }

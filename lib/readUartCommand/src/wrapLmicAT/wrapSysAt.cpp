@@ -1,7 +1,7 @@
 #include "wrapSysAt.h"
 
-void WrapSysAt::sysReset(WrapMacAt *macWrapper){
-    macWrapper->macReset(*(u2_t*)EEPROM_START_ADDR_BAND);
+void WrapSysAt::reset(WrapMacAt *macWrapper){
+    macWrapper->reset(*(u2_t*)EEPROM_START_ADDR_BAND);
 
     char deveui[LORA_EUI_SIZE*2];
     char appeui[LORA_EUI_SIZE*2];
@@ -29,4 +29,8 @@ void WrapSysAt::sysReset(WrapMacAt *macWrapper){
     macWrapper->setAppsKey(appskey);
 
     //TO DO SET CHANNELS
+}
+
+void WrapSysAt::sleep(){
+
 }

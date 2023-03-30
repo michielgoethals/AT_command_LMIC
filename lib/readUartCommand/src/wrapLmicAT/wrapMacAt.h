@@ -42,14 +42,14 @@ class WrapMacAt{
         void begin();
     public:
         //mac commands
-        void macReset(u2_t band);
-        void macTx(char* cnf, u1_t portno, char* data);
-        void macJoinOtaa();
-        void macJoinABP();
-        void macSave();
-        void macForceEnable();
-        void macPause();
-        void macResume();
+        void reset(u2_t band);
+        void tx(char* cnf, u1_t portno, char* data);
+        void joinOtaa();
+        void joinABP();
+        void save();
+        void forceEnable();
+        void pause();
+        void resume();
     
     public:    
         //mac set command
