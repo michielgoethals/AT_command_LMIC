@@ -148,9 +148,6 @@ void WrapMacAt::joinABP(){
         
         LMIC.seqnoDn = *(u4_t*)EEPROM_START_ADDR_FCNTDOWN;
         LMIC.seqnoUp = *(u4_t*)EEPROM_START_ADDR_FCNTUP;
-
-        Serial.println(LMIC.seqnoDn);
-        Serial.println(LMIC.seqnoUp);
     }
 }
 

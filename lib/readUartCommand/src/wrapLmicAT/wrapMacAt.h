@@ -14,6 +14,7 @@
 #define LMIC_DIO1_PIN 				   PA11
 #define LMIC_DIO2_PIN 				   PA12
 
+#define LORA_ADDR_SIZE 4
 #define LORA_EUI_SIZE 8
 #define LORA_KEY_SIZE 16
 
