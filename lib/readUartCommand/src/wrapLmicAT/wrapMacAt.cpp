@@ -48,26 +48,29 @@ void WrapMacAt::begin(){
     LMIC.dn2Dr = 3;
 }
 
-void WrapMacAt::reset(u2_t band){
+String WrapMacAt::reset(u2_t band){
     LMIC_unjoin();
     joined = false;
     otaa = false;
     abp = false;
+
     begin();
     if(band == 868 | band == 433){
         this->band = band;
-        Serial.println("ok");  
+        response = "ok"; 
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::tx(char* cnf, u1_t portno, char* data){
+String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
     int result = 0;
 
     if(paused){
-        Serial.println("mac_paused");
+        response = "mac_paused";
     }else if(!joined){
         Serial.println("not_joined");
     }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
@@ -83,34 +86,36 @@ void WrapMacAt::tx(char* cnf, u1_t portno, char* data){
 
     switch (result){
         case LMIC_ERROR_SUCCESS:
-            Serial.println("ok");
+            response = "ok";
             break;
         case LMIC_ERROR_TX_BUSY:
-            Serial.println("busy");
+            response = "busy";
             break;
         case LMIC_ERROR_TX_TOO_LARGE:
-            Serial.println("invalid_data_len");
+            response = "invalid_data_len";
             break;
         default:
             break;
     }
 
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 
     while(packetTx){ // This makes it blocking
         os_runloop_once();
     }
 }
 
-void WrapMacAt::joinOtaa(){
+String WrapMacAt::joinOtaa(){
     if(paused){
-        Serial.println("mac_paused");
+        response = "mac_paused";
     }else if (LMIC.opmode & OP_TXRXPEND){
-        Serial.println("busy"); 
+        response = "busy"; 
     }else if(!(devEuiSet && appEuiSet && appKeySet)){
-        Serial.println("keys_not_init");
+        response = "keys_not_init";
     }else{
         otaa = true;
         LMIC_startJoining();
@@ -129,22 +134,24 @@ void WrapMacAt::joinOtaa(){
 
         join_failed = false;
     }
+
+    return response;
 }
 
-void WrapMacAt::joinABP(){
+String WrapMacAt::joinABP(){
     if(paused){
-        Serial.println("mac_paused");
+        response = "mac_paused";
     }else if (LMIC.opmode & OP_TXRXPEND) {
-        Serial.println("busy"); 
+        response = "busy"; 
     }else if(!(devAddrSet && nwksKeySet && appsKeySet)){
-        Serial.println("keys_not_init");
+        response = "keys_not_init";
     }else{
         //nwkskey & appskey are already set
         LMIC_setSession(NET_ID, _devaddr, NULL, NULL);
         joined = true;
         abp = true;
-        Serial.println("ok");
-        Serial.println("accepted");
+        
+        response = "ok \r\n accepted";
         
         LMIC.seqnoDn = *(u4_t*)EEPROM_START_ADDR_FCNTDOWN;
         LMIC.seqnoUp = *(u4_t*)EEPROM_START_ADDR_FCNTUP;
@@ -152,7 +159,7 @@ void WrapMacAt::joinABP(){
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
-void WrapMacAt::save(){
+String WrapMacAt::save(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
     HAL_FLASHEx_DATAEEPROM_Erase(EEPROM_START_ADDR_BAND);
@@ -183,43 +190,54 @@ void WrapMacAt::save(){
     } 
 
     HAL_FLASHEx_DATAEEPROM_Lock();
-    Serial.println("ok");
+
+    response ="ok";
+
+    return response;
 }
 
 //disables silent immediatly state
-void WrapMacAt::forceEnable(){
-    Serial.println("ok");
+String WrapMacAt::forceEnable(){
+    response = "ok";
+
+    return response;
 }
 
 //pause mac functionality replies time interval (ms) for how long it can be paused
 //0 = can't be paused
 //4294967295 = mac in idle 
-void WrapMacAt::pause(){
+String WrapMacAt::pause(){
     paused = 1;
-    Serial.println("ok");
+    response = "ok";
     //TODO: calculate time and return it
+
+    return response;
 }
 
 //resume mac
-void WrapMacAt::resume(){
+String WrapMacAt::resume(){
     paused = 0;
-    Serial.println("ok");
+    response = "ok";
+
+    return response;
 }
 
-void WrapMacAt::setDevAddr(char* devaddr){
+String WrapMacAt::setDevAddr(char* devaddr){
     if(strlen(devaddr) < LORA_EUI_SIZE+1){
         this->devAddr = String(devaddr);
 
         _devaddr = (u4_t)strtol(devaddr,NULL,16);
 
         devAddrSet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::setDevEui(char* deveui){
+String WrapMacAt::setDevEui(char* deveui){
     if(strlen(deveui) < (LORA_EUI_SIZE*2)+1){
         this->devEui = String(deveui);
 
@@ -230,13 +248,15 @@ void WrapMacAt::setDevEui(char* deveui){
         }
 
         devEuiSet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::setAppEui(char* appeui){
+String WrapMacAt::setAppEui(char* appeui){
     if(strlen(appeui) < (LORA_EUI_SIZE*2)+1){
         this->appEui = String(appeui);
 
@@ -247,14 +267,16 @@ void WrapMacAt::setAppEui(char* appeui){
         }
 
         appEuiSet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
 //Keys must be stored in big endian
-void WrapMacAt::setNwkskey(char* nwkskey){
+String WrapMacAt::setNwkskey(char* nwkskey){
     if(strlen(nwkskey) < (LORA_KEY_SIZE*2)+1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(nwkskey+(i*2));
@@ -264,13 +286,15 @@ void WrapMacAt::setNwkskey(char* nwkskey){
         }
 
         nwksKeySet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::setAppsKey(char* appskey){
+String WrapMacAt::setAppsKey(char* appskey){
     if(strlen(appskey) < (LORA_KEY_SIZE*2)+1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(appskey+(i*2));
@@ -280,13 +304,15 @@ void WrapMacAt::setAppsKey(char* appskey){
         }
 
         appsKeySet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::setAppKey(char* appkey){
+String WrapMacAt::setAppKey(char* appkey){
     if(strlen(appkey) < (LORA_KEY_SIZE*2) + 1){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	    tempStr[0] = *(appkey+(i*2));
@@ -295,68 +321,74 @@ void WrapMacAt::setAppKey(char* appkey){
         }
 
         appKeySet = true;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
-void WrapMacAt::setPwridx(u1_t pwrIndex){
+String WrapMacAt::setPwridx(u1_t pwrIndex){
+    response = "ok";
     switch (pwrIndex)
     {
     case 1:
         LMIC.adrTxPow = 14;
-        Serial.println("ok");
         break;
     case 2:
         LMIC.adrTxPow = 12;
-        Serial.println("ok");
         break;
     case 3:
         LMIC.adrTxPow = 10;
-        Serial.println("ok");
         break;
     case 4:
         LMIC.adrTxPow = 8;
-        Serial.println("ok");
         break;
     case 5:
         LMIC.adrTxPow = 6;
-        Serial.println("ok");
         break;   
     default:
-        Serial.println("invalid_param");
+        response = "invalid_param";
         break;
     }
+    
+    return response;
 }
 
-void WrapMacAt::setDr(u1_t dr){
+String WrapMacAt::setDr(u1_t dr){
     if(dr < 8){
         LMIC.datarate = dr;
-        Serial.println("ok");
+        response = "ok";
     }else{
-        Serial.println("invalid_param"); 
+        response = "invalid_param"; 
     }
+
+    return response;
 }
 
-void WrapMacAt::setAdr(char* state){
+String WrapMacAt::setAdr(char* state){
     pwrUpdated = 1;
     nbRepUpdated = 1;
+
+    response = "ok";
+
     if(strcmp(state, "on")==0){
         adr = 1;
         LMIC_setAdrMode(1);
-        Serial.println("ok");
     }else if(strcmp(state, "off")==0){
         adr = 0;
         LMIC_setAdrMode(0);
-        Serial.println("ok");
     }else{
-        Serial.println("invalid_param");
+        response = "invalid_param";
     }
+
+    return response;
 }
 
 void WrapMacAt::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
+
 }
 
 void WrapMacAt::setRetX(u1_t retX){

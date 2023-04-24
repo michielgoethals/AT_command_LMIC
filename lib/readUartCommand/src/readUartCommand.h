@@ -18,8 +18,8 @@ class ReadUartCommand{
         void begin(int baudrate);
         void begin();
         char * getCommand();
-
         void parseCommand(char* command);
+        
         void parseMacCommand(char* command);
         void parseMacTxCommand(char* txCommand);
         void parseJoinCommand(char* joinMethod);
@@ -46,4 +46,6 @@ class ReadUartCommand{
         char * command = nullptr;
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;
+        WrapRadioAt radioWrapper;
+        String response;
 };

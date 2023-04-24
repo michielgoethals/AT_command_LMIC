@@ -28,7 +28,7 @@
 #define EEPROM_START_ADDR_FCNTUP        0x08080048
 #define EEPROM_START_ADDR_FCNTDOWN      0x0808004C
 
-/* #define EEPROM_START_ADDR_CH_FREQ       0x08080048
+/* #define EEPROM_START_ADDR_CH_FREQ    0x08080048
 #define EEPROM_START_ADDR_CH_DCYCLE     0x0808004C
 #define EEPROM_START_ADDR_CH_DRRANGE    0x0808004D
 #define EEPROM_START_ADDR_CH_STATUS     0x0808004F
@@ -43,26 +43,26 @@ class WrapMacAt{
         void begin();
     public:
         //mac commands
-        void reset(u2_t band);
-        void tx(char* cnf, u1_t portno, char* data);
-        void joinOtaa();
-        void joinABP();
-        void save();
-        void forceEnable();
-        void pause();
-        void resume();
+        String reset(u2_t band);
+        String tx(char* cnf, u1_t portno, char* data);
+        String joinOtaa();
+        String joinABP();
+        String save();
+        String forceEnable();
+        String pause();
+        String resume();
     
     public:    
         //mac set command
-        void setDevAddr(char* devaddr); 
-        void setDevEui(char* deveui);
-        void setAppEui(char* appeui);
-        void setNwkskey(char* nwskey);
-        void setAppsKey(char* appskey);
-        void setAppKey(char* appkey);
-        void setPwridx(u1_t pwrIndex); //0-5
-        void setDr(u1_t dataRate); //0-8
-        void setAdr(char* state); 
+        String setDevAddr(char* devaddr); 
+        String setDevEui(char* deveui);
+        String setAppEui(char* appeui);
+        String setNwkskey(char* nwskey);
+        String setAppsKey(char* appskey);
+        String setAppKey(char* appkey);
+        String setPwridx(u1_t pwrIndex); //0-5
+        String setDr(u1_t dataRate); //0-8
+        String setAdr(char* state); 
         void setBat(u1_t level);
         void setRetX(u1_t retX);
         void setLinkChk(u2_t sec);
@@ -143,6 +143,8 @@ class WrapMacAt{
         bit_t TXUpdated = 0;
         
         char tempStr[3] = {0x00, 0x00, 0x00};
+
+        String response;
 };
 
 
