@@ -129,20 +129,20 @@ void ReadUartCommand::parseMacSetCommand(char* setCommand){
     }else if(strcmp(word, "adr")==0){
         response = macWrapper.setAdr(param);
     }else if(strcmp(word, "bat")==0){
-        response = macWrapper.setBat(atoi(param));
+        macWrapper.setBat(atoi(param));
     }else if(strcmp(word, "retx")==0){
-        response = macWrapper.setBat(atoi(param));
+        macWrapper.setBat(atoi(param));
     }else if(strcmp(word, "linkchk")==0){
-        response = macWrapper.setLinkChk(atoi(param));
+        macWrapper.setLinkChk(atoi(param));
     }else if(strcmp(word, "rxdelay1")==0){
-        response = macWrapper.setRxDelay1(atoi(param));
+        macWrapper.setRxDelay1(atoi(param));
     }else if(strcmp(word, "ar")==0){
-        response = macWrapper.setAdr(param);
+        macWrapper.setAdr(param);
     }else if(strcmp(word, "rx2")==0){
         char* dr;
         char* freq;
         get2Params(getRemainingPart(setCommand,len), &dr, &freq);
-        response = macWrapper.setRx2(atoi(dr), atoi(freq));
+        macWrapper.setRx2(atoi(dr), atoi(freq));
     }else if(strcmp(word, "ch")==0){
         parseMacSetChCommand(getRemainingPart(setCommand,len));
     }
@@ -159,23 +159,23 @@ void ReadUartCommand::parseMacSetChCommand(char* setChCommand){
         char* chID;
         char* freq;
         get2Params(getRemainingPart(setChCommand,len), &chID, &freq);
-        response = macWrapper.setChFreq(atoi(chID), atoi(freq));
+        macWrapper.setChFreq(atoi(chID), atoi(freq));
     }else if(strcmp(word, "dcycle")==0){
         char* chID;
         char* dcycle;
         get2Params(getRemainingPart(setChCommand,len), &chID, &dcycle);
-        response = macWrapper.setChDCycle(atoi(chID), atoi(dcycle));
+        macWrapper.setChDCycle(atoi(chID), atoi(dcycle));
     }else if(strcmp(word, "drrange")==0){
         char* chID;
         char* minRange;
         char* maxRange;
         get3Params(getRemainingPart(setChCommand,len), &chID, &minRange, &maxRange);
-        response = macWrapper.setChDrRange(atoi(chID), atoi(minRange), atoi(maxRange));
+        macWrapper.setChDrRange(atoi(chID), atoi(minRange), atoi(maxRange));
     }else if(strcmp(word, "status")==0){
         char* chID;
         char* param2;
         get2Params(getRemainingPart(setChCommand,len), &chID, &param2);
-        response = macWrapper.setChStatus(atoi(chID), param2);
+        macWrapper.setChStatus(atoi(chID), param2);
     }
 
     sendResponse(response);
