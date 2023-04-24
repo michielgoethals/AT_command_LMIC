@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lmic/oslmic_types.h>
+#include "wrapMacAt.h"
 
 class WrapRadioAt{
     public:
@@ -44,4 +45,7 @@ class WrapRadioAt{
         void getWdt();
         void getBw();
         void getSnr();
+
+    private:
+        String response;
 };
