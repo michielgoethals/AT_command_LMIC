@@ -4,10 +4,12 @@
 
 class WrapRadioAt{
     public:
+        //General methods
         void rx(u2_t windowSize);
         void tx(char* data);
         void cw(char* state);
-
+        
+        //Set methods
         void setBt(char* gfBT);
         void setMod(char* mode);
         void setFreq(u4_t freq);
@@ -25,6 +27,7 @@ class WrapRadioAt{
         void setSync(char* syncWord);
         void setBw(u2_t bandWidth);
 
+        //Get methods
         void getBt();
         void getMod();
         void getFreq();
