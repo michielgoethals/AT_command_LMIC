@@ -34,7 +34,7 @@ void loop(){
   if(Serial.available()>0){
     //give time to fill buffer with full command and then read it
     //since we dont know the length of the command
-    delay(500);
+    delay(100);
     os_setCallback(&readAt, readAtfunc);
   }
   //execute scheduled jobs and events
