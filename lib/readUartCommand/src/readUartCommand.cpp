@@ -3,28 +3,33 @@
 ReadUartCommand::ReadUartCommand(){
 }
 
-void ReadUartCommand::begin(){
+void ReadUartCommand::begin(){	
     begin(DEFAULT_BAUD);
 }
 
 void ReadUartCommand::begin(int baudrate){
     Serial.begin(baudrate);
     Serial.println("Serial started @STM");
+    //Initialize lorawan parameters and reset LMIC library at start
     macWrapper.begin();
 }
 
 char * ReadUartCommand::getCommand(){
-    char buffer[MAX_LENGTH_MESSAGE];
+    static char buffer[MAX_LENGTH_MESSAGE];
     int index = 0;
 
-    while(Serial.available() > 0){
-        buffer[index]= tolower(Serial.read());
-        index++;
-    }  
-    command = new char[index];
-    strncpy(command,buffer,index+1);
-    command[index] = '\0';
-    return command;
+    while(index < MAX_LENGTH_MESSAGE-1 && Serial.available() > 0){
+        char byte = tolower(Serial.read());
+        if(byte == '\n'){
+            buffer[index] = '\n';
+            return buffer;
+        } else{
+            buffer[index] = byte;
+            index++;
+        }
+    } 
+
+    return nullptr; 
 }
 
 void ReadUartCommand::parseCommand(char* command){
@@ -259,6 +264,7 @@ void ReadUartCommand::parseRadioCommand(char* command){
 
 void ReadUartCommand::sendResponse(String response){
     Serial.println(response);
+    response = "";
 }
 
 void ReadUartCommand::sendResponse(int response){
