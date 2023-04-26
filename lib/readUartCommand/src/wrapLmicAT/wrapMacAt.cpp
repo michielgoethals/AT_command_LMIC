@@ -37,7 +37,6 @@ void os_getDevKey (u1_t* buf) {
 }
     
 void WrapMacAt::begin(){
-    os_init();
     LMIC_reset();
     LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
     setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
