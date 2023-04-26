@@ -20,7 +20,7 @@ bool joined = false;
 bool packetTx = false;
 bool join_failed = false;
 bool otaa = false;
-bool abp = true;
+bool abp = false;
 
 //getters for LMIC library
 // LMIC expects reverse from TTN
@@ -222,7 +222,7 @@ String WrapMacAt::resume(){
 }
 
 String WrapMacAt::setDevAddr(char* devaddr){
-    if(strlen(devaddr) < LORA_EUI_SIZE+1){
+    if(strlen(devaddr) == LORA_EUI_SIZE){
         this->devAddr = String(devaddr);
 
         _devaddr = (u4_t)strtol(devaddr,NULL,16);
@@ -237,7 +237,7 @@ String WrapMacAt::setDevAddr(char* devaddr){
 }
 
 String WrapMacAt::setDevEui(char* deveui){
-    if(strlen(deveui) < (LORA_EUI_SIZE*2)+1){
+    if(strlen(deveui) == (LORA_EUI_SIZE*2)){
         this->devEui = String(deveui);
 
         for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
@@ -256,7 +256,7 @@ String WrapMacAt::setDevEui(char* deveui){
 }
 
 String WrapMacAt::setAppEui(char* appeui){
-    if(strlen(appeui) < (LORA_EUI_SIZE*2)+1){
+    if(strlen(appeui) == (LORA_EUI_SIZE*2)){
         this->appEui = String(appeui);
 
         for(uint8_t i = 0; i < LORA_EUI_SIZE; i++){
@@ -276,7 +276,7 @@ String WrapMacAt::setAppEui(char* appeui){
 
 //Keys must be stored in big endian
 String WrapMacAt::setNwkskey(char* nwkskey){
-    if(strlen(nwkskey) < (LORA_KEY_SIZE*2)+1){
+    if(strlen(nwkskey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(nwkskey+(i*2));
             tempStr[1] = *(nwkskey+(i*2)+1);
@@ -294,7 +294,7 @@ String WrapMacAt::setNwkskey(char* nwkskey){
 }
 
 String WrapMacAt::setAppsKey(char* appskey){
-    if(strlen(appskey) < (LORA_KEY_SIZE*2)+1){
+    if(strlen(appskey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(appskey+(i*2));
             tempStr[1] = *(appskey+(i*2)+1);
@@ -312,7 +312,7 @@ String WrapMacAt::setAppsKey(char* appskey){
 }
 
 String WrapMacAt::setAppKey(char* appkey){
-    if(strlen(appkey) < (LORA_KEY_SIZE*2) + 1){
+    if(strlen(appkey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
     	    tempStr[0] = *(appkey+(i*2));
     	    tempStr[1] = *(appkey+(i*2)+1);
