@@ -8,7 +8,7 @@
 #include <cctype>
 
 #define MAX_LENGTH_MESSAGE 127
-#define DEFAULT_BAUD 56700
+#define DEFAULT_BAUD 57600
 
 using namespace std;
 
@@ -44,6 +44,7 @@ class ReadUartCommand{
 
     private:
         char * command = nullptr;
+        UART_HandleTypeDef huart2;
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;
         WrapRadioAt radioWrapper;
