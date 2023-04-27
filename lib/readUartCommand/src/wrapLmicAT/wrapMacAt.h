@@ -63,16 +63,16 @@ class WrapMacAt{
         String setPwridx(u1_t pwrIndex); //0-5
         String setDr(u1_t dataRate); //0-8
         String setAdr(char* state); 
-        void setBat(u1_t level);
-        void setRetX(u1_t retX);
-        void setLinkChk(u2_t sec);
-        void setRxDelay1(u2_t rxDelay);
-        void setAr(char* state);
-        void setRx2(u1_t dr, u4_t freq);
-        void setChFreq(u1_t chID, u4_t frequency);
-        void setChDCycle(u1_t chID, u2_t Cycle);
-        void setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange);
-        void setChStatus(u1_t chIDn, char* enable);
+        String setBat(u1_t level);
+        String setRetX(u1_t retX);
+        String setLinkChk(u2_t sec);
+        String setRxDelay1(u2_t rxDelay);
+        String setAr(char* state);
+        String setRx2(u1_t dr, u4_t freq);
+        String setChFreq(u1_t chID, u4_t frequency);
+        String setChDCycle(u1_t chID, u2_t Cycle);
+        String setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange);
+        String setChStatus(u1_t chIDn, char* enable);
 
         //mac get commands
         String getDevAddr();

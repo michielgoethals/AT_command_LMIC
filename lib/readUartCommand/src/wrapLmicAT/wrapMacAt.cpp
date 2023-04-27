@@ -383,17 +383,19 @@ String WrapMacAt::setAdr(char* state){
     return response;
 }
 
-void WrapMacAt::setBat(u1_t level){
+String WrapMacAt::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
+    return "ok"
 
 }
 
-void WrapMacAt::setRetX(u1_t retX){
+String WrapMacAt::setRetX(u1_t retX){
     LMIC.upRepeat = retX;
+    return "ok"
 }
 
 //TO DO seconds implementation
-void WrapMacAt::setLinkChk(u2_t sec){
+String WrapMacAt::setLinkChk(u2_t sec){
     if(sec ==0){
         linkchk = 0;
         LMIC_setLinkCheckMode(0);
@@ -402,55 +404,68 @@ void WrapMacAt::setLinkChk(u2_t sec){
         LMIC_setLinkCheckMode(1);
         LMIC.adrAckReq = sec;
     }
+    return "ok";
 }
 
-void WrapMacAt::setRxDelay1(u2_t rxdelay1){
+String WrapMacAt::setRxDelay1(u2_t rxdelay1){
     LMIC.rxDelay = rxdelay1/1000;
+    return "ok";
 }
 
 //Automatic replay TO DO LMIC Auto reply on;
-void WrapMacAt::setAr(char* state){
+String WrapMacAt::setAr(char* state){
     if(strcmp(state, "on")==0){
         ar = 1;
     }else if(strcmp(state, "off")==0){
         ar = 0;
     }
+    return "ok";
 }
 
-void WrapMacAt::setRx2(u1_t dr, u4_t freq){
+String WrapMacAt::setRx2(u1_t dr, u4_t freq){
     RX2Updated = 1;
     setDr(dr);
     LMIC.dn2Freq = freq; 
+
+    return "ok";
 }
 
-void WrapMacAt::setChFreq(u1_t chID, u4_t frequency){
+String WrapMacAt::setChFreq(u1_t chID, u4_t frequency){
     chUpdated = 1;
     LMIC.channelFreq[chID] = frequency;
+
+    return "ok";
 }
 
-void WrapMacAt::setChDCycle(u1_t chID, u2_t dCycle){
+String WrapMacAt::setChDCycle(u1_t chID, u2_t dCycle){
     chUpdated = 1;
     u2_t actualDcycle = 100/(dCycle + 1); //in %
     u2_t txcap = 1/actualDcycle;
     u1_t const band = LMIC.channelFreq[chID] & 0x3;
     LMIC.bands[band].txcap = txcap;
     prescalerUpdated = 1;
+
+    return "ok";
 }
 
-void WrapMacAt::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
+String WrapMacAt::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
     chUpdated = 1;
     LMIC.channelDrMap[chID] = DR_RANGE_MAP(minRange, maxRange);
+    return "ok";
 }
 
-void WrapMacAt::setChStatus(u1_t chID, char* enable){
+String WrapMacAt::setChStatus(u1_t chID, char* enable){
+    response = "ok";
     chUpdated = 1;
     if(strcmp(enable, "on/r/n")==0){
         LMIC_enableChannel(chID);
     }else if(strcmp(enable, "off/r/n")==0){
         LMIC_disableChannel(chID);
     }else{
-        //invalid param
+        response = "invalid_param";
     }
+
+    return  response;
 }
 
 String WrapMacAt::getDevAddr(){
