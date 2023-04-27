@@ -4,6 +4,8 @@
 
 osjob_t initjob;
 osjob_t readAt;
+osjob_t blink;
+
 ReadUartCommand reader; 
 
 char * command = nullptr;
@@ -85,10 +87,16 @@ static void readAtfunc(osjob_t* j){
   reader.parseCommand(command);
 }
 
+static void blinkfunc(osjob_t* j){
+  //blink led
+  digitalWrite(PB11, !digitalRead(PB11));
+  delay(1000);
+}
+
 
 void setup(){
+  pinMode(PB11, OUTPUT);
   //initialize run-time environment
-
   os_init();
   //
   os_setCallback(&initjob, initfunc);
@@ -102,6 +110,8 @@ void loop(){
     delay(100);
     os_setCallback(&readAt, readAtfunc);
   }
+
+  os_setCallback(&blink, blinkfunc);
   //execute scheduled jobs and events
   os_runloop_once();
 }
