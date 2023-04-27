@@ -95,9 +95,6 @@ class WrapMacAt{
         u2_t getChDcycle(u1_t chID);
         String getChDrrange(u1_t chID);
         String getChStatus(u1_t chID);
-
-        //sys commands
-        void sysReset();
         
     private:
         //OTAA 
