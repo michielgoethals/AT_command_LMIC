@@ -8,15 +8,15 @@
 #include <cstring>
 
 // LoRaWAN LMIC constants
-#define LMIC_NSS_PIN 				   PA4
-#define LMIC_RST_PIN 				   PB14
-#define LMIC_DIO0_PIN 				   PA10
-#define LMIC_DIO1_PIN 				   PA11
-#define LMIC_DIO2_PIN 				   PA12
+#define LMIC_NSS_PIN 				    PA4  //pin14 QFN48  //20 QFP64
+#define LMIC_RST_PIN 				    PB14 //pin27 QFN48  //35 QFP64
+#define LMIC_DIO0_PIN 				    PA10 //pin31 QFN48  //43 QFP64
+#define LMIC_DIO1_PIN 				    PA11 //pin32 QFN48  //44 QFP64
+#define LMIC_DIO2_PIN 				    PA12 //pin33 QFN48  //45 QFP64
 
-#define LORA_ADDR_SIZE 4
-#define LORA_EUI_SIZE 8
-#define LORA_KEY_SIZE 16
+#define LORA_ADDR_SIZE                  4
+#define LORA_EUI_SIZE                   8
+#define LORA_KEY_SIZE                   16
 
 #define EEPROM_START_ADDR_BAND          0x08080000
 #define EEPROM_START_ADDR_DEVEUI        0x08080004
