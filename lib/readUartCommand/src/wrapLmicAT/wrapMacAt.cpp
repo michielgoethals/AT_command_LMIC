@@ -118,9 +118,6 @@ String WrapMacAt::joinOtaa(){
     }else{
         otaa = true;
         LMIC_startJoining();
-        while(!joined && !join_failed){
-            os_runloop_once();
-        }
         
         if(joined){
             LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
@@ -653,10 +650,6 @@ String WrapMacAt::getChStatus(u1_t chID){
     }
 
     return status;
-}
-
-void WrapMacAt::sysReset(){
-
 }
 
 void onEvent (ev_t ev) {
