@@ -47,7 +47,7 @@ class ReadUartCommand{
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;
         WrapRadioAt radioWrapper;
-        String response;
+        
         String responses[13] = {"ok", "busy", "frame_counter_err_rejoin_needed", 
         "invalid_class", "invalid_data_len", "invalid_param", "keys_not_init", "mac_paused","multicast_keys_not_set",  
         "no_free_ch", "silent", "err"};
