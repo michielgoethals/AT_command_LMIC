@@ -219,7 +219,7 @@ String WrapMacAt::resume(){
 }
 
 String WrapMacAt::setDevAddr(char* devaddr){
-    if(strlen(devaddr) == LORA_EUI_SIZE){
+    if(strlen(devaddr) == (LORA_ADDR_SIZE*2)){
         this->devAddr = String(devaddr);
 
         _devaddr = (u4_t)strtol(devaddr,NULL,16);
