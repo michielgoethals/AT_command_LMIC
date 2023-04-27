@@ -147,11 +147,12 @@ String WrapMacAt::joinABP(){
         joined = true;
         abp = true;
         
-        response = "ok \r\n accepted";
+        response = "ok\raccepted";
         
         LMIC.seqnoDn = *(u4_t*)EEPROM_START_ADDR_FCNTDOWN;
         LMIC.seqnoUp = *(u4_t*)EEPROM_START_ADDR_FCNTUP;
     }
+    return response;
 }
 
 //save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
