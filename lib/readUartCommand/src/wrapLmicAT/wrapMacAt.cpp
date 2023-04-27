@@ -385,13 +385,13 @@ String WrapMacAt::setAdr(char* state){
 
 String WrapMacAt::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
-    return "ok"
+    return "ok";
 
 }
 
 String WrapMacAt::setRetX(u1_t retX){
     LMIC.upRepeat = retX;
-    return "ok"
+    return "ok";
 }
 
 //TO DO seconds implementation
