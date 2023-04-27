@@ -44,7 +44,6 @@ class ReadUartCommand{
 
     private:
         char * command = nullptr;
-        UART_HandleTypeDef huart2;
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;
         WrapRadioAt radioWrapper;

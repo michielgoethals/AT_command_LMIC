@@ -8,27 +8,7 @@ void ReadUartCommand::begin(){
 }
 
 void ReadUartCommand::begin(int baudrate){
-    /*
-    huart2.Instance = USART2;
-    huart2.Init.BaudRate = baudrate;
-    huart2.Init.WordLength = UART_WORDLENGTH_8B;
-    huart2.Init.StopBits = UART_STOPBITS_1;
-    huart2.Init.Parity = UART_PARITY_NONE;
-    huart2.Init.Mode = UART_MODE_TX_RX;
-    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
-    huart2.AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
-    huart2.AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ON0X55FRAME;
-    
-    if (HAL_UART_Init(&huart2) != HAL_OK){
-        Error_Handler();
-    }
-    */
-
     Serial.begin(baudrate);
-
     Serial.println("Serial started @baudrate: " + String(baudrate));
     //Initialize lorawan parameters and reset LMIC library at start
     macWrapper.begin();
