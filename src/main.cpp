@@ -51,12 +51,28 @@ extern "C" void SystemClock_Config(void)
   }
 }
 
+extern "C" void MX_GPIO_Init(void)
+{
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
+}
+
 static void initfunc(osjob_t* j){
    
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   //initializes serial communication and mac parameters
   reader.begin();
   //init done
