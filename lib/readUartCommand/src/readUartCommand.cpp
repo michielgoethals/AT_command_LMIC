@@ -9,8 +9,8 @@ void ReadUartCommand::begin(){
 
 void ReadUartCommand::begin(int baudrate){
     Serial.begin(baudrate);
-    Serial.println("Serial started @baudrate: " + String(baudrate));
-    //Initialize lorawan parameters and reset LMIC library at start
+    sendResponse(startupMessage);
+    //reset LMIC library and restore lorawan configuration from eeprom
     macWrapper.begin();
 }
 
@@ -265,11 +265,11 @@ void ReadUartCommand::parseSysCommand(char* command){
     if(strcmp(word, "sleep")==0){
         sendResponse(sysWrapper.sleep());
     }else if(strcmp(word, "reset")==0){
-        sendResponse(sysWrapper.reset(&macWrapper));
-    }else if(strcmp(word, "f")==0){
+        sysWrapper.reset();
+    }else if(strcmp(word, "erasefw")==0){
         sysWrapper.eraseFW();
-    }else if(strcmp(word, "factoryRESET")==0){
-        sendResponse(sysWrapper.factoryRESET());
+    }else if(strcmp(word, "factoryreset")==0){
+        sysWrapper.factoryRESET(&macWrapper);
     }else if(strcmp(word, "set")==0){
         parseSysSetCommand(getRemainingPart(command,len));
     }else if(strcmp(word, "get")==0){
@@ -295,14 +295,12 @@ void ReadUartCommand::parseSysSetCommand(char* setCommand){
         get2Params(getRemainingPart(setCommand,len), &pinname, &pinstate);
         u1_t state = atoi(pinstate);
         sendResponse(sysWrapper.setPinDig(pinname, state));
-    }
-    /* else if(strcmp(word, "pinmode")==0){
+    }else if(strcmp(word, "pinmode")==0){
         char* pinname;
         char* pinmode;
         get2Params(getRemainingPart(setCommand,len), &pinname, &pinmode);
         sendResponse(sysWrapper.setPinMode(pinname, pinmode));
-    } */
-    else{
+    }else{
         sendResponse("invalid_param");
     }
 }
@@ -322,8 +320,7 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
         sendResponse(sysWrapper.getVdd());
     }else if(strcmp(word, "hweui")==0){
         sendResponse(sysWrapper.getHweui());
-    }
-    /* else if(strcmp(word, "pindig")==0){
+    }else if(strcmp(word, "pindig")==0){
         char* pinname;
         pinname = getRemainingPart(getCommand,len);
         sendResponse(sysWrapper.getPinDig(pinname));
@@ -331,8 +328,7 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
         char* pinname;
         pinname = getRemainingPart(getCommand,len);
         sendResponse(sysWrapper.getPinAna(pinname));
-    } */
-    else{
+    }else{
         sendResponse("invalid_param");
     }
 }

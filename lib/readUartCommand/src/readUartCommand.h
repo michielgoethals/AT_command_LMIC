@@ -53,6 +53,8 @@ class ReadUartCommand{
 
     //attributes
     private:
+        String startupMessage = "STM32 started";
+        
         char * command = nullptr;
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;
