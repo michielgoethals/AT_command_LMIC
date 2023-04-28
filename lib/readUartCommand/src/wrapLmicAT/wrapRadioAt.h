@@ -4,13 +4,14 @@
 #include "wrapMacAt.h"
 
 class WrapRadioAt{
+    //general commands
     public:
-        //General methods
         void rx(u2_t windowSize);
         void tx(char* data);
         void cw(char* state);
-        
-        //Set methods
+    
+    //set commands
+    public:  
         void setBt(char* gfBT);
         void setMod(char* mode);
         void setFreq(u4_t freq);
@@ -27,8 +28,8 @@ class WrapRadioAt{
         void setWdt(u4_t watchDog);
         void setSync(char* syncWord);
         void setBw(u2_t bandWidth);
-
-        //Get methods
+    //get commands
+    public:
         void getBt();
         void getMod();
         void getFreq();
@@ -46,6 +47,7 @@ class WrapRadioAt{
         void getBw();
         void getSnr();
 
+    //attributes
     private:
         String response;
 };
