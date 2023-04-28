@@ -46,6 +46,58 @@ void WrapMacAt::begin(){
     LMIC_setLinkCheckMode(linkchk);
     LMIC.margin = mrgn;
     LMIC.dn2Dr = 3;
+    restoreConfiguration();
+}
+
+//restore lorawan configuration from EEPROM
+void WrapMacAt::restoreConfiguration(){
+    //restore band
+    reset(*(u2_t*)EEPROM_START_ADDR_BAND);
+
+    //restore deveui
+    char deveui[LORA_EUI_SIZE*2];
+    for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
+        sprintf(deveui+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVEUI+i));
+    }
+    setDevEui(deveui);
+
+    //restore appeui
+    char appeui[LORA_EUI_SIZE*2];
+    for (u1_t i = 0; i < LORA_EUI_SIZE; i++){
+        sprintf(appeui+i*2, "%02X", *((char*)EEPROM_START_ADDR_APPEUI+i));
+    }
+    setAppEui(appeui);
+
+
+    //restore appkey
+    char appkey[LORA_KEY_SIZE*2];
+    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
+        sprintf(appkey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPKEY+i)));    
+    }
+    setAppKey(appkey);
+
+    //restore nwkskey
+    char nwkskey[LORA_KEY_SIZE*2];
+    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
+        sprintf(nwkskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_NWKSKEY+i)));        
+    }
+    setNwkskey(nwkskey);
+
+    //restore appskey
+    char appskey[LORA_KEY_SIZE*2];
+    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
+        sprintf(appskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPSKEY+i)));       
+    }
+    setAppsKey(appskey);
+
+    //restore devaddr
+    char devaddr[LORA_ADDR_SIZE*2];
+    for(u1_t i = 0; i < LORA_ADDR_SIZE; i++){
+        sprintf(devaddr+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVADDR-i-1+LORA_ADDR_SIZE));
+    }
+    setDevAddr(devaddr);
+
+    //TO DO SET CHANNELS
 }
 
 //reset the MAC layer to a specific band (433MHz not implemented or 868MHz)
@@ -54,8 +106,8 @@ String WrapMacAt::reset(u2_t band){
     joined = false;
     otaa = false;
     abp = false;
+    LMIC_reset();
 
-    begin();
     if(band == 868){
         this->band = band;
         response = "ok"; 
