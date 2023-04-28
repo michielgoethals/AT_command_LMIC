@@ -53,15 +53,15 @@ String WrapSysAt::setNvm(char* address, char* data){
     return response;
 }
 
-//set unused pin to digital output and drive high (1) or low (0)
+//set unsed pin to digital output and drive high (1) or low (0)
 String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
     if(pinState != 0 && pinState != 1){
         response = "invalid_param";
     }else{
         for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
             if(String(pinName) == pinNameList[i]){
-                pinMode(pinList[i], OUTPUT);
-                digitalWrite(pinList[i], pinState);
+                //pinMode(pinList[i], OUTPUT);
+                //digitalWrite(pinList[i], pinState);
                 response = "ok";
             }else{
                 response = "invalid_param";
@@ -71,18 +71,11 @@ String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
     return response; 
 }
 
-//set mode of pin to digin or digout or ana
-String WrapSysAt::setPinMode(char* pinName, char* pMode){
-    /* for(u1_t i = 0; i < MAX_PIN_MODES; i++){
-        if(String(pMode) == pinModesList[i]){
-            for(u1_t j = 0; j < MAX_GPIO_PINS; j++){
-                if(String(pinName) == pinNameList[j]){
-                    pinMode(pinList[j], pinModes[i]);
-                    response = "ok";
-                }else{
-                    response = "invalid_param";
-                }
-            }
+String WrapSysAt::setPinMode(char* pinName, char* pinMode){
+    for(u1_t i = 0; i < MAX_PIN_MODES; i++){
+        if(String(pinMode) == pinModes[i]){
+           response = "ok";
+           //TO DO: set pinmode
         }else{
             response = "invalid_param";
         }
@@ -90,7 +83,6 @@ String WrapSysAt::setPinMode(char* pinName, char* pMode){
     return response;  */
     return "not_implemented";
 }
-
 
 //get version of the firmware
 String WrapSysAt::getVer(){
@@ -126,8 +118,6 @@ String WrapSysAt::getHweui(){
 
 }
 
-//maybe implement in other hardware design not enough analog pins om 48pin stm32l0
-//read digital value of configured digital pin
 String WrapSysAt::getPinDig(char* pinName){
     /* for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
         if(String(pinName) == pinNameList[i]){

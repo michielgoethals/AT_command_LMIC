@@ -295,12 +295,14 @@ void ReadUartCommand::parseSysSetCommand(char* setCommand){
         get2Params(getRemainingPart(setCommand,len), &pinname, &pinstate);
         u1_t state = atoi(pinstate);
         sendResponse(sysWrapper.setPinDig(pinname, state));
-    }else if(strcmp(word, "pinmode")==0){
+    }
+    /* else if(strcmp(word, "pinmode")==0){
         char* pinname;
         char* pinmode;
         get2Params(getRemainingPart(setCommand,len), &pinname, &pinmode);
         sendResponse(sysWrapper.setPinMode(pinname, pinmode));
-    }else{
+    } */
+    else{
         sendResponse("invalid_param");
     }
 }
@@ -320,7 +322,8 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
         sendResponse(sysWrapper.getVdd());
     }else if(strcmp(word, "hweui")==0){
         sendResponse(sysWrapper.getHweui());
-    }else if(strcmp(word, "pindig")==0){
+    }
+    /* else if(strcmp(word, "pindig")==0){
         char* pinname;
         pinname = getRemainingPart(getCommand,len);
         sendResponse(sysWrapper.getPinDig(pinname));
@@ -328,7 +331,8 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
         char* pinname;
         pinname = getRemainingPart(getCommand,len);
         sendResponse(sysWrapper.getPinAna(pinname));
-    }else{
+    } */
+    else{
         sendResponse("invalid_param");
     }
 }
