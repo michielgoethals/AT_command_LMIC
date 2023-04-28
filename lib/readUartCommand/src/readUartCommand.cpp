@@ -263,9 +263,73 @@ void ReadUartCommand::parseSysCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "sleep")==0){
-        sysWrapper.sleep();
+        sendResponse(sysWrapper.sleep());
     }else if(strcmp(word, "reset")==0){
-        sysWrapper.reset(&macWrapper);
+        sendResponse(sysWrapper.reset(&macWrapper));
+    }else if(strcmp(word, "f")==0){
+        sysWrapper.eraseFW();
+    }else if(strcmp(word, "factoryRESET")==0){
+        sendResponse(sysWrapper.factoryRESET());
+    }else if(strcmp(word, "set")==0){
+        parseSysSetCommand(getRemainingPart(command,len));
+    }else if(strcmp(word, "get")==0){
+        parseSysGetCommand(getRemainingPart(command,len));
+    }else{
+        sendResponse("invalid_param");
+    }
+}
+
+void ReadUartCommand::parseSysSetCommand(char* setCommand){
+    char * word;
+    word = strtok(setCommand, " ");
+    int len = strlen(word)+1;
+
+    if(strcmp(word, "nvm")==0){
+        char* address;
+        char* data;
+        get2Params(getRemainingPart(setCommand,len), &address, &data);
+        sendResponse(sysWrapper.setNvm(address, data));
+    }else if(strcmp(word, "pindig")==0){
+        char* pinname;
+        char* pinstate;
+        get2Params(getRemainingPart(setCommand,len), &pinname, &pinstate);
+        u1_t state = atoi(pinstate);
+        sendResponse(sysWrapper.setPinDig(pinname, state));
+    }else if(strcmp(word, "pinmode")==0){
+        char* pinname;
+        char* pinmode;
+        get2Params(getRemainingPart(setCommand,len), &pinname, &pinmode);
+        sendResponse(sysWrapper.setPinMode(pinname, pinmode));
+    }else{
+        sendResponse("invalid_param");
+    }
+}
+
+void ReadUartCommand::parseSysGetCommand(char* getCommand){
+    char * word;
+    word = strtok(getCommand, " ");
+    int len = strlen(word)+1;
+
+    if(strcmp(word, "ver")==0){
+        sendResponse(sysWrapper.getVer());
+    }else if(strcmp(word, "nvm")==0){
+        char* address;
+        address = getRemainingPart(getCommand,len);
+        sendResponse(sysWrapper.getNvm(address));
+    }else if(strcmp(word, "vdd")==0){
+        sendResponse(sysWrapper.getVdd());
+    }else if(strcmp(word, "hweui")==0){
+        sendResponse(sysWrapper.getHweui());
+    }else if(strcmp(word, "pindig")==0){
+        char* pinname;
+        pinname = getRemainingPart(getCommand,len);
+        sendResponse(sysWrapper.getPinDig(pinname));
+    }else if(strcmp(word, "pinana")==0){
+        char* pinname;
+        pinname = getRemainingPart(getCommand,len);
+        sendResponse(sysWrapper.getPinAna(pinname));
+    }else{
+        sendResponse("invalid_param");
     }
 }
 

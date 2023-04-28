@@ -13,13 +13,19 @@
 using namespace std;
 
 class ReadUartCommand{
+    //general
     public:
         ReadUartCommand();
         void begin(int baudrate);
         void begin();
         char * getCommand();
         void parseCommand(char* command);
-        
+        void sendResponse(String response);
+        void sendResponse(int response);
+        void sendResponseHex(int response);
+
+    //mac related commands 
+    public:
         void parseMacCommand(char* command);
         void parseMacTxCommand(char* txCommand);
         void parseJoinCommand(char* joinMethod);
@@ -28,20 +34,24 @@ class ReadUartCommand{
         void parseMacGetCommand(char* getCommand);
         void parseMacGetChCommand(char* getChcommand);
 
+    //system related commands
+    public:
         void parseSysCommand(char* command);
+        void parseSysSetCommand(char* setCommand);
+        void parseSysGetCommand(char* getCommand);
 
+    //radio related commands
         void parseRadioCommand(char* command);
         
-        void sendResponse(String response);
-        void sendResponse(int response);
-        void sendResponseHex(int response);
+ 
         
-
+    //private functions
     private:
         char * getRemainingPart(char* arr, int offset);
         void get2Params(char* params, char** param1, char** param2);
         void get3Params(char* params, char** param1, char** param2, char** param3);
 
+    //attributes
     private:
         char * command = nullptr;
         WrapMacAt macWrapper;
