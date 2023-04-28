@@ -120,6 +120,10 @@ void ReadUartCommand::parseMacSetCommand(char* setCommand){
         sendResponse(macWrapper.setAppKey(param));
     }else if(strcmp(word, "pwridx")==0){
         sendResponse(macWrapper.setPwridx(atoi(param)));
+    }else if(strcmp(word, "dnctr")==0){
+        sendResponse(macWrapper.setDnCtr(atoi(param)));
+    }else if(strcmp(word, "upctr")==0){
+        sendResponse(macWrapper.setUpCtr(atoi(param)));
     }else if(strcmp(word, "dr")==0){
         sendResponse(macWrapper.setDr(atoi(param)));
     }else if(strcmp(word, "adr")==0){
@@ -202,6 +206,10 @@ void ReadUartCommand::parseMacGetCommand(char* getCommand){
         sendResponse(macWrapper.getBand());
     }else if(strcmp(word, "pwridx")==0){
         sendResponse(macWrapper.getPwridx());
+    }else if(strcmp(word, "dnctr")==0){
+        sendResponse(macWrapper.getDnCtr());
+    }else if(strcmp(word, "upctr")==0){
+        sendResponse(macWrapper.getUpCtr());
     }else if(strcmp(word, "adr")==0){
         sendResponse(macWrapper.getAdr());
     }else if(strcmp(word, "retx")==0){
