@@ -11,56 +11,8 @@ String WrapSysAt::sleep(){
 }
 
 //restore save LoRaWAN configuration from EEPROM
-String WrapSysAt::reset(WrapMacAt *macWrapper){
-    //restore band
-    macWrapper->reset(*(u2_t*)EEPROM_START_ADDR_BAND);
-
-    //restore deveui
-    char deveui[LORA_EUI_SIZE*2];
-    for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
-        sprintf(deveui+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVEUI+i));
-    }
-    macWrapper->setDevEui(deveui);
-
-    //restore appeui
-    char appeui[LORA_EUI_SIZE*2];
-    for (u1_t i = 0; i < LORA_EUI_SIZE; i++){
-        sprintf(appeui+i*2, "%02X", *((char*)EEPROM_START_ADDR_APPEUI+i));
-    }
-    macWrapper->setAppEui(appeui);
-
-
-    //restore appkey
-    char appkey[LORA_KEY_SIZE*2];
-    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
-        sprintf(appkey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPKEY+i)));    
-    }
-    macWrapper->setAppKey(appkey);
-
-    //restore nwkskey
-    char nwkskey[LORA_KEY_SIZE*2];
-    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
-        sprintf(nwkskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_NWKSKEY+i)));        
-    }
-    macWrapper->setNwkskey(nwkskey);
-
-    //restore appskey
-    char appskey[LORA_KEY_SIZE*2];
-    for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
-        sprintf(appskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPSKEY+i)));       
-    }
-    macWrapper->setAppsKey(appskey);
-
-    //restore devaddr
-    char devaddr[LORA_ADDR_SIZE*2];
-    for(u1_t i = 0; i < LORA_ADDR_SIZE; i++){
-        sprintf(devaddr+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVADDR-i-1+LORA_ADDR_SIZE));
-    }
-    macWrapper->setDevAddr(devaddr);
-
-    //TO DO SET CHANNELS
-
-    return  "STM reset and restarted version:"+getVer();
+void WrapSysAt::reset(){
+    NVIC_SystemReset();
 }
 
 //remove firmware from flash and prepare for new firmware
@@ -69,9 +21,16 @@ void WrapSysAt::eraseFW(){
 }
 
 //reset user and data eeprom to default values
-String WrapSysAt::factoryRESET(){
+void WrapSysAt::factoryRESET(WrapMacAt *macWrapper){
+    HAL_FLASHEx_DATAEEPROM_Unlock();
     HAL_FLASHEx_DATAEEPROM_Erase(DATA_EEPROM_BASE);
-    return "STM32 EEPROM restored to default values";
+    HAL_FLASHEx_DATAEEPROM_Lock();
+    
+    macWrapper->begin(); 
+    LMICbandplan_setSessionInitDefaultChannels();
+    macWrapper->save();
+
+    reset();
 }
 
 
@@ -112,9 +71,9 @@ String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
     return response; 
 }
 
-/*
+//set mode of pin to digin or digout or ana
 String WrapSysAt::setPinMode(char* pinName, char* pMode){
-    for(u1_t i = 0; i < MAX_PIN_MODES; i++){
+    /* for(u1_t i = 0; i < MAX_PIN_MODES; i++){
         if(String(pMode) == pinModesList[i]){
             for(u1_t j = 0; j < MAX_GPIO_PINS; j++){
                 if(String(pinName) == pinNameList[j]){
@@ -128,13 +87,14 @@ String WrapSysAt::setPinMode(char* pinName, char* pMode){
             response = "invalid_param";
         }
     }
-    return response; 
+    return response;  */
+    return "not_implemented";
 }
-*/
+
 
 //get version of the firmware
 String WrapSysAt::getVer(){
-    return "0.0.1";
+    return version;
 }
 
 //get the hex value of the user eeprom address (300-3FF)
@@ -153,7 +113,8 @@ String WrapSysAt::getNvm(char* address){
 
 //do an ADC conversion and return the result in mV (0-3600)
 String WrapSysAt::getVdd(){
-    return String(analogRead(A0)*3.3*1000/4096);
+    //return String(analogRead(A0)*3.3*1000/4096);
+    return "not_implemeted";
 }
 
 //get hweui of radio module
@@ -166,9 +127,9 @@ String WrapSysAt::getHweui(){
 }
 
 //maybe implement in other hardware design not enough analog pins om 48pin stm32l0
-/*
+//read digital value of configured digital pin
 String WrapSysAt::getPinDig(char* pinName){
-    for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
+    /* for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
         if(String(pinName) == pinNameList[i]){
             int pin = pinList[i];
             response = (String)digitalRead(pin);
@@ -176,12 +137,15 @@ String WrapSysAt::getPinDig(char* pinName){
             response = "invalid_param";
         }
     }
-    return response;   
+    return response;   */ 
+
+    return "not_implemented";
 }
 
 
 String WrapSysAt::getPinAna(char* pinName){
-    for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
+
+    /* for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
         if(String(pinName) == pinNameList[i]){
             int pin = pinList[i];
             response = (String)analogRead(pin);
@@ -189,6 +153,7 @@ String WrapSysAt::getPinAna(char* pinName){
             response = "invalid_param";
         }
     }
-    return response;   
+    return response;  */  
+
+    return "not_implemented";
 }
-*/

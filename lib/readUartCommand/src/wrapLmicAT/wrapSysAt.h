@@ -11,15 +11,15 @@ class WrapSysAt{
     //general commands
     public:
         String sleep();
-        String reset(WrapMacAt *macWrapper);
+        void reset();
         void eraseFW();
-        String factoryRESET();
+        void factoryRESET(WrapMacAt *macWrapper);
 
     //set commands
     public:
         String setNvm(char* address, char* data);
         String setPinDig(char* pinName, u1_t pinState);
-        //String setPinMode(char* pinName, char* pinMode);
+        String setPinMode(char* pinName, char* pinMode);
 
     //get commands
     public:
@@ -27,11 +27,12 @@ class WrapSysAt{
         String getNvm(char* address);
         String getVdd();
         String getHweui();
-        //String getPinDig(char* pinName);
-        //String getPinAna(char* pinName);
+        String getPinDig(char* pinName);
+        String getPinAna(char* pinName);
 
     //attributes
     private:
+        String version = "0.0.1";
         String response;
         
         String pinModesList[MAX_PIN_MODES] = {"digout", "digin", "ana"};
