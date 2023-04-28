@@ -38,11 +38,12 @@
 #define NET_ID 0x13
 
 class WrapMacAt{
+    //set default parameters
     public:
-        //set default parameters
         void begin();
+    
+    //general commands   
     public:
-        //mac commands
         String reset(u2_t band);
         String tx(char* cnf, u1_t portno, char* data);
         String joinOtaa();
@@ -52,16 +53,18 @@ class WrapMacAt{
         String pause();
         String resume();
     
+    //set commands
     public:    
-        //mac set command
         String setDevAddr(char* devaddr); 
         String setDevEui(char* deveui);
         String setAppEui(char* appeui);
         String setNwkskey(char* nwskey);
         String setAppsKey(char* appskey);
         String setAppKey(char* appkey);
-        String setPwridx(u1_t pwrIndex); //0-5
-        String setDr(u1_t dataRate); //0-8
+        String setPwridx(u1_t pwrIndex); 
+        String setDnCtr(u4_t fCntDown);
+        String setUpCtr(u4_t fCntUp);
+        String setDr(u1_t dataRate);
         String setAdr(char* state); 
         String setBat(u1_t level);
         String setRetX(u1_t retX);
@@ -69,18 +72,24 @@ class WrapMacAt{
         String setRxDelay1(u2_t rxDelay);
         String setAr(char* state);
         String setRx2(u1_t dr, u4_t freq);
+    
+    //set channel commands    
+    public:
         String setChFreq(u1_t chID, u4_t frequency);
         String setChDCycle(u1_t chID, u2_t Cycle);
         String setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange);
         String setChStatus(u1_t chIDn, char* enable);
 
-        //mac get commands
+    //get commands
+    public:
         String getDevAddr();
         String getDevEui();
         String getAppEui();
         u1_t getDr();
         u2_t getBand();
         u1_t getPwridx();
+        u4_t getDnCtr();
+        u4_t getUpCtr();
         String getAdr();
         u1_t getRetX();
         u2_t getRxDelay1(); 
@@ -91,14 +100,16 @@ class WrapMacAt{
         u1_t getMrgn();
         u1_t getGwnb();
         u2_t getSatus();
+    
+    //get channel commands
+    public:
         u4_t getChFreq(u1_t chID);
         u2_t getChDcycle(u1_t chID);
         String getChDrrange(u1_t chID);
         String getChStatus(u1_t chID);
-        
-    private:
-        //OTAA 
-        
+
+    //OTAA attributes    
+    private: 
         String devEui = "0000000000000000";
         String appEui = "0000000000000000";
 
@@ -106,14 +117,16 @@ class WrapMacAt{
         bool appEuiSet = false;
         bool appKeySet = false;
 
-        //ABP
+    //ABP attributes
+    private:
         String devAddr = "00000000";
         
         bool nwksKeySet = false;
         bool devAddrSet = false;
         bool appsKeySet = false;
-        
-        //default values;
+
+    //default attributes
+    private:  
         u1_t dr = 5;
         u2_t band = 868;
         u1_t pwrIndex = 1;
@@ -127,20 +140,23 @@ class WrapMacAt{
         bit_t silent = 0;
         bit_t paused = 0;
         bit_t linkchk = 0;
-        
-        //status register
-        u2_t status = 0b0000000000000000;
 
-        //settings updated bits
+    //settings updated bits
+    private:
         bit_t chUpdated = 0;
         bit_t pwrUpdated = 0;
         bit_t nbRepUpdated = 0;
         bit_t prescalerUpdated = 0;
         bit_t RX2Updated = 0;
         bit_t TXUpdated = 0;
-        
-        char tempStr[3] = {0x00, 0x00, 0x00};
+    
+    //status register    
+    private:
+        u2_t status = 0b0000000000000000;
 
+    //other attributes
+    private:    
+        char tempStr[3] = {0x00, 0x00, 0x00};
         String response;
 };
 

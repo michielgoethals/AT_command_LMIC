@@ -35,7 +35,8 @@ void os_getDevEui (u1_t* buf) {
 void os_getDevKey (u1_t* buf) {
     memcpy(buf, _appkey, 16); 
 }
-    
+
+//resets LMIC state and sets up the default values    
 void WrapMacAt::begin(){
     LMIC_reset();
     LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
@@ -47,6 +48,7 @@ void WrapMacAt::begin(){
     LMIC.dn2Dr = 3;
 }
 
+//reset the MAC layer to a specific band (433MHz not implemented or 868MHz)
 String WrapMacAt::reset(u2_t band){
     LMIC_unjoin();
     joined = false;
@@ -54,9 +56,11 @@ String WrapMacAt::reset(u2_t band){
     abp = false;
 
     begin();
-    if(band == 868 | band == 433){
+    if(band == 868){
         this->band = band;
         response = "ok"; 
+    }else if(band == 433){
+        response = "not_implemented";
     }else{
         response = "invalid_param";
     }
@@ -64,6 +68,7 @@ String WrapMacAt::reset(u2_t band){
     return response;
 }
 
+//Send an uplink packet with the specified data and port (cnf or uncnf)
 String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
     int result = 0;
@@ -102,12 +107,9 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     }
 
     return response;
-
-    while(packetTx){ // This makes it blocking
-        os_runloop_once();
-    }
 }
 
+//join the network with OTAA
 String WrapMacAt::joinOtaa(){
     if(paused){
         response = "mac_paused";
@@ -134,6 +136,7 @@ String WrapMacAt::joinOtaa(){
     return response;
 }
 
+//setup ABP session
 String WrapMacAt::joinABP(){
     if(paused){
         response = "mac_paused";
@@ -155,7 +158,7 @@ String WrapMacAt::joinABP(){
     return response;
 }
 
-//save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to eeprom
+//save band, deveui, appeui, appkey, nwkskey, appskey, devaddr, ch (freq, dcycle, drrange, status) to EEPROM
 String WrapMacAt::save(){
     HAL_FLASHEx_DATAEEPROM_Unlock();
 
@@ -219,6 +222,7 @@ String WrapMacAt::resume(){
     return response;
 }
 
+//set device address
 String WrapMacAt::setDevAddr(char* devaddr){
     if(strlen(devaddr) == (LORA_ADDR_SIZE*2)){
         this->devAddr = String(devaddr);
@@ -234,6 +238,7 @@ String WrapMacAt::setDevAddr(char* devaddr){
     return response;
 }
 
+//set device EUI
 String WrapMacAt::setDevEui(char* deveui){
     if(strlen(deveui) == (LORA_EUI_SIZE*2)){
         this->devEui = String(deveui);
@@ -253,6 +258,7 @@ String WrapMacAt::setDevEui(char* deveui){
     return response;
 }
 
+//set application EUI
 String WrapMacAt::setAppEui(char* appeui){
     if(strlen(appeui) == (LORA_EUI_SIZE*2)){
         this->appEui = String(appeui);
@@ -272,6 +278,7 @@ String WrapMacAt::setAppEui(char* appeui){
     return response;
 }
 
+//set network session key
 //Keys must be stored in big endian
 String WrapMacAt::setNwkskey(char* nwkskey){
     if(strlen(nwkskey) == (LORA_KEY_SIZE*2)){
@@ -291,6 +298,7 @@ String WrapMacAt::setNwkskey(char* nwkskey){
     return response;
 }
 
+//set application session key
 String WrapMacAt::setAppsKey(char* appskey){
     if(strlen(appskey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
@@ -309,6 +317,7 @@ String WrapMacAt::setAppsKey(char* appskey){
     return response;
 }
 
+//set application key
 String WrapMacAt::setAppKey(char* appkey){
     if(strlen(appkey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
@@ -326,6 +335,7 @@ String WrapMacAt::setAppKey(char* appkey){
     return response;
 }
 
+//set power index (1-5)
 String WrapMacAt::setPwridx(u1_t pwrIndex){
     response = "ok";
     switch (pwrIndex)
@@ -353,6 +363,23 @@ String WrapMacAt::setPwridx(u1_t pwrIndex){
     return response;
 }
 
+//set value of the downlink frame counter (0-4294967295)
+String WrapMacAt::setDnCtr(u4_t fCntDown){
+    LMIC.seqnoDn = fCntDown;
+    response = "ok";
+
+    return response;
+}
+
+//set value of the uplink frame counter (0-4294967295)
+String WrapMacAt::setUpCtr(u4_t fCntUp){
+    LMIC.seqnoUp = fCntUp;
+    response = "ok";
+
+    return response;
+}
+
+//set datarate (0-7)
 String WrapMacAt::setDr(u1_t dr){
     if(dr < 8){
         LMIC.datarate = dr;
@@ -364,6 +391,7 @@ String WrapMacAt::setDr(u1_t dr){
     return response;
 }
 
+//enable or disable ADR
 String WrapMacAt::setAdr(char* state){
     pwrUpdated = 1;
     nbRepUpdated = 1;
@@ -383,17 +411,19 @@ String WrapMacAt::setAdr(char* state){
     return response;
 }
 
+//set battery level (0-255)
 String WrapMacAt::setBat(u1_t level){
     LMIC_setBatteryLevel(level);
     return "ok";
-
 }
 
+//set number of retranmission (0-255)
 String WrapMacAt::setRetX(u1_t retX){
     LMIC.upRepeat = retX;
     return "ok";
 }
 
+//set link check in seconds (0 = disable, else = do check every x seconds)
 //TO DO seconds implementation
 String WrapMacAt::setLinkChk(u2_t sec){
     if(sec ==0){
@@ -407,11 +437,13 @@ String WrapMacAt::setLinkChk(u2_t sec){
     return "ok";
 }
 
+//set delay between uplink transmission and first reception slot in ms (0-65535)
 String WrapMacAt::setRxDelay1(u2_t rxdelay1){
     LMIC.rxDelay = rxdelay1/1000;
     return "ok";
 }
 
+//sets the state of automatic reply to a confirmed downlink (on/off) or when frame pending bit has been set by server
 //Automatic replay TO DO LMIC Auto reply on;
 String WrapMacAt::setAr(char* state){
     if(strcmp(state, "on")==0){
@@ -422,21 +454,27 @@ String WrapMacAt::setAr(char* state){
     return "ok";
 }
 
+//set the datarate and frequency of the second reception slot
 String WrapMacAt::setRx2(u1_t dr, u4_t freq){
     RX2Updated = 1;
-    setDr(dr);
+    
+    response = setDr(dr);
+
     LMIC.dn2Freq = freq; 
 
-    return "ok";
+    return response;
 }
 
+//set channel frequency for a specific channel (0-15)
 String WrapMacAt::setChFreq(u1_t chID, u4_t frequency){
     chUpdated = 1;
+
     LMIC.channelFreq[chID] = frequency;
 
     return "ok";
 }
 
+//set channel duty cycle for a specific channel (0-15)
 String WrapMacAt::setChDCycle(u1_t chID, u2_t dCycle){
     chUpdated = 1;
     u2_t actualDcycle = 100/(dCycle + 1); //in %
@@ -448,12 +486,14 @@ String WrapMacAt::setChDCycle(u1_t chID, u2_t dCycle){
     return "ok";
 }
 
+//set channel data rate range for a specific channel (0-15)
 String WrapMacAt::setChDrRange(u1_t chID, u1_t minRange, u1_t maxRange){
     chUpdated = 1;
     LMIC.channelDrMap[chID] = DR_RANGE_MAP(minRange, maxRange);
     return "ok";
 }
 
+//set channel status enabled or disabled for a specific channel (0-15)
 String WrapMacAt::setChStatus(u1_t chID, char* enable){
     response = "ok";
     chUpdated = 1;
@@ -468,26 +508,32 @@ String WrapMacAt::setChStatus(u1_t chID, char* enable){
     return  response;
 }
 
+//get device address
 String WrapMacAt::getDevAddr(){
     return devAddr;
 }
 
+//get device EUI
 String WrapMacAt::getDevEui(){
     return devEui;
 }
 
+//get application EUI
 String WrapMacAt::getAppEui(){
     return appEui;
 }
 
+//get data rate
 u1_t WrapMacAt::getDr(){
     return LMIC.datarate;
 }
 
+//get configured band
 u2_t WrapMacAt::getBand(){
     return band;
 }
 
+//get power index 
 u1_t WrapMacAt::getPwridx(){
     u1_t pwridx = 0;
     switch (LMIC.adrTxPow)
@@ -514,6 +560,17 @@ u1_t WrapMacAt::getPwridx(){
     return pwridx;
 }
 
+//get value of downlink frame counter that will be used for next downlink reception
+u4_t WrapMacAt::getDnCtr(){
+    return LMIC.seqnoDn;
+}
+
+//get value of uplink frame counter that will be used for next uplink transmission
+u4_t WrapMacAt::getUpCtr(){
+    return LMIC.seqnoUp;
+}
+
+//get state of ADR (on/off)
 String WrapMacAt::getAdr(){
     String result = "off";
     if(LMIC.adrEnabled==1){
@@ -522,19 +579,22 @@ String WrapMacAt::getAdr(){
     return result;
 }
 
+//get number of retranmission
 u1_t WrapMacAt::getRetX(){
     return LMIC.upRepeat;
 }
 
+//get delay between uplink transmission and first reception slot in ms
 u2_t WrapMacAt::getRxDelay1(){
     return LMIC.rxDelay*1000;
 }
 
+//get delay between uplink transmission and second reception slot in ms
 u2_t WrapMacAt::getRxDelay2(){
     return (LMIC.rxDelay*1000)+1000;
 }
 
-//automatic reply on/off
+//get state of automatic reply 
 String WrapMacAt::getAr(){
     String result = "off";
     if(ar == 1){
@@ -543,27 +603,28 @@ String WrapMacAt::getAr(){
     return result;
 }
 
-//Second receive window parameters
+//get second receive window parameters
 String WrapMacAt::getRx2(u1_t band){
     return String(LMIC.dn2Dr) + " " + String(LMIC.dn2Freq);
 }
 
-//duty cycle prescaler TO DO
+//get duty cycle prescaler 
+//TO DO
 u2_t WrapMacAt::getDcycleps(){
     return LMIC.globalDutyRate;
 }
 
-//margin
+//get margin
 u1_t WrapMacAt::getMrgn(){
     return LMIC.margin;
 }
 
-//number of gateways received linkchk TO DO 0 if disabled, 1-255 if enabled)
+//get number of gateways received linkchk TO DO 0 if disabled, 1-255 if enabled)
 u1_t WrapMacAt::getGwnb(){
     return gwnb;
 }   
 
-//2-byte hex representing status of module default 0x00
+//get 2-byte hex representing status of module default 0x00
 u2_t WrapMacAt::getSatus(){
     //clear status reg
     status &= 0b0000000000000000;
@@ -621,12 +682,12 @@ u2_t WrapMacAt::getSatus(){
     return status;
 }
 
-//Get channel frequency
+//Get channel frequency for given channel ID (0-15)
 u4_t WrapMacAt::getChFreq(u1_t chID){
     return LMIC.channelFreq[chID];
 }
 
-//Get channel duty cycle
+//Get channel duty cycle for given channel ID (0-15)
 u2_t WrapMacAt::getChDcycle(u1_t chID){
     u1_t const band = LMIC.channelFreq[chID] & 0x3;
     u2_t txcap = LMIC.bands[band].txcap;
@@ -634,7 +695,7 @@ u2_t WrapMacAt::getChDcycle(u1_t chID){
     return (100/dCycle) - 1;
 }
 
-//get
+//get channel data rate range for given channel ID (0-15)
 String WrapMacAt::getChDrrange(u1_t chID){
     u2_t mask = LMIC.channelDrMap[chID];
 
@@ -657,6 +718,7 @@ String WrapMacAt::getChDrrange(u1_t chID){
     return String(minRange) + " " + String(maxRange);
 }
 
+// get channel status for given channel ID (0-15)
 String WrapMacAt::getChStatus(u1_t chID){
     bit_t enabled = LMIC.channelMap << chID;
     String status = "off";
