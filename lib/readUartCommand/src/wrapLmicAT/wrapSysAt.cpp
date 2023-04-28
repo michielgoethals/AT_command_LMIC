@@ -72,6 +72,7 @@ String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
 }
 
 String WrapSysAt::setPinMode(char* pinName, char* pinMode){
+    /*
     for(u1_t i = 0; i < MAX_PIN_MODES; i++){
         if(String(pinMode) == pinModes[i]){
            response = "ok";
@@ -80,7 +81,7 @@ String WrapSysAt::setPinMode(char* pinName, char* pinMode){
             response = "invalid_param";
         }
     }
-    return response;  */
+    return response;*/ 
     return "not_implemented";
 }
 
