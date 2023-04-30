@@ -113,7 +113,7 @@ void ReadUartCommand::parseMacSetCommand(char* setCommand){
     }else if(strcmp(word, "appeui")==0){
         sendResponse(macWrapper.setAppEui(param));
     }else if(strcmp(word, "nwkskey")==0){
-        sendResponse(macWrapper.setNwkskey(param));
+        sendResponse(macWrapper.setNwksKey(param));
     }else if(strcmp(word, "appskey")==0){
         sendResponse(macWrapper.setAppsKey(param));
     }else if(strcmp(word, "appkey")==0){
