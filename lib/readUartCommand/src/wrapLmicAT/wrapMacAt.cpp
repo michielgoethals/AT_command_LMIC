@@ -60,9 +60,6 @@ void WrapMacAt::setDefaultParameters(){
     LMIC.dn2Dr = 3;
 }
 
-
-
-
 //restore lorawan configuration from EEPROM
 void WrapMacAt::restoreConfiguration(){
     //restore band
@@ -111,7 +108,7 @@ void WrapMacAt::restoreConfiguration(){
     }
     setDevAddr(devaddr);
 
-    //TO DO SET CHANNELS
+    //RESET CHANNELS
 }
 
 //reset the MAC layer to a specific band (433MHz not implemented or 868MHz)
@@ -152,8 +149,6 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
                 result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
                 packetTx=true;
         }
-
-        
 
     switch (result){
         case LMIC_ERROR_SUCCESS:
