@@ -1,33 +1,38 @@
 #pragma once
 
 #include <lmic/oslmic_types.h>
+#include <lmic/radio.c>
+
 #include "wrapMacAt.h"
+
+#define MAX_PWR_VALUES      19
+#define MAX_BW_VALUES       21
 
 class WrapRadioAt{
     //general commands
     public:
-        void rx(u2_t windowSize);
-        void tx(char* data);
-        void cw(char* state);
+        String rx(u2_t windowSize);
+        String tx(char* data);
+        String cw(char* state);
     
     //set commands
     public:  
-        void setBt(char* gfBT);
-        void setMod(char* mode);
-        void setFreq(u4_t freq);
-        void setPwr(s1_t pwrout);
-        void setSf(char* spreadingFactor);
-        void setAfcBw(float autoFreqBand);
-        void setRxBw(float rxBandWidth);
-        void setBitRate(u2_t fskBitRate);
-        void setFdev(u2_t freqDev);
-        void setPrLen(u2_t preamble);
-        void setCrc(char* crcHeader);
-        void setIqi(char* iqInvert);
-        void setCr(char* codingRate);
-        void setWdt(u4_t watchDog);
-        void setSync(char* syncWord);
-        void setBw(u2_t bandWidth);
+        String setBt(char* gfBT);
+        String setMod(char* mode);
+        String setFreq(u4_t freq);
+        String setPwr(s1_t pwrout);
+        String setSf(char* spreadingFactor);
+        String setAfcBw(float autoFreqBand);
+        String setRxBw(float rxBandWidth);
+        String setBitRate(u2_t fskBitRate);
+        String setFdev(u2_t freqDev);
+        String setPrLen(u2_t preamble);
+        String setCrc(char* crcHeader);
+        String setIqi(char* iqInvert);
+        String setCr(char* codingRate);
+        String setWdt(u4_t watchDog);
+        String setSync(char* syncWord);
+        String setBw(u2_t bandWidth);
     
     //get commands
     public:
@@ -50,5 +55,8 @@ class WrapRadioAt{
 
     //attributes
     private:
+        u1_t mc1 = 0, mc2 = 0, mc3 = 0;
+        s1_t pwrList[MAX_PWR_VALUES] = {-3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        float bwList[MAX_BW_VALUES] = {250, 125, 62.5, 31.3, 15.6, 7.8, 3.9, 200, 100, 50, 25, 12.5, 6.3, 3.1, 166.7, 83.3, 41.7, 20.8, 10.4, 5.2, 2.6};
         String response;
 };
