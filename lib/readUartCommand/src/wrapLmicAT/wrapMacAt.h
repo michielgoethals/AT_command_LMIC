@@ -41,6 +41,7 @@ class WrapMacAt{
     //set default parameters
     public:
         void begin();
+        void setDefaultParameters();
         void restoreConfiguration();
     
     //general commands   
@@ -59,7 +60,7 @@ class WrapMacAt{
         String setDevAddr(char* devaddr); 
         String setDevEui(char* deveui);
         String setAppEui(char* appeui);
-        String setNwkskey(char* nwskey);
+        String setNwksKey(char* nwskey);
         String setAppsKey(char* appskey);
         String setAppKey(char* appkey);
         String setPwridx(u1_t pwrIndex); 

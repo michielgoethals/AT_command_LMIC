@@ -39,15 +39,29 @@ void os_getDevKey (u1_t* buf) {
 //resets LMIC state and sets up the default values    
 void WrapMacAt::begin(){
     LMIC_reset();
-    LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
-    setPwridx(pwrIndex); //we set it to pwridx 1 = 14 dBm
-    setRetX(retX);
-    LMIC_setAdrMode(adr);
-    LMIC_setLinkCheckMode(linkchk);
-    LMIC.margin = mrgn;
-    LMIC.dn2Dr = 3;
+    setDefaultParameters();
     restoreConfiguration();
 }
+
+void WrapMacAt::setDefaultParameters(){
+    //set default datarate to 5 = DR_SF7
+    LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
+    //set power index 1 = 14 dBm (max)
+    setPwridx(pwrIndex); 
+    // disable adr
+    LMIC_setAdrMode(adr);
+    //set number of retransmissions to 7
+    setRetX(retX);
+    // disable link check mode
+    LMIC_setLinkCheckMode(linkchk);
+    //set margin to 255
+    LMIC.margin = mrgn;
+    //set default datarate for second receive window
+    LMIC.dn2Dr = 3;
+}
+
+
+
 
 //restore lorawan configuration from EEPROM
 void WrapMacAt::restoreConfiguration(){
@@ -81,7 +95,7 @@ void WrapMacAt::restoreConfiguration(){
     for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
         sprintf(nwkskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_NWKSKEY+i)));        
     }
-    setNwkskey(nwkskey);
+    setNwksKey(nwkskey);
 
     //restore appskey
     char appskey[LORA_KEY_SIZE*2];
@@ -110,6 +124,7 @@ String WrapMacAt::reset(u2_t band){
 
     if(band == 868){
         this->band = band;
+        //LMICbandplan_setSessionInitDefaultChannels();
         response = "ok"; 
     }else if(band == 433){
         response = "not_implemented";
@@ -332,7 +347,7 @@ String WrapMacAt::setAppEui(char* appeui){
 
 //set network session key
 //Keys must be stored in big endian
-String WrapMacAt::setNwkskey(char* nwkskey){
+String WrapMacAt::setNwksKey(char* nwkskey){
     if(strlen(nwkskey) == (LORA_KEY_SIZE*2)){
         for(uint8_t i = 0; i < LORA_KEY_SIZE; i++){
             tempStr[0] = *(nwkskey+(i*2));
