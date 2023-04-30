@@ -23,13 +23,25 @@ void WrapSysAt::eraseFW(){
 //reset user and data eeprom to default values
 void WrapSysAt::factoryRESET(WrapMacAt *macWrapper){
     HAL_FLASHEx_DATAEEPROM_Unlock();
-    HAL_FLASHEx_DATAEEPROM_Erase(DATA_EEPROM_BASE);
+    
+    for (uint32_t Address = DATA_EEPROM_BASE; Address <=DATA_EEPROM_END; Address += 4) {
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, Address, 0);
+    }
+   
     HAL_FLASHEx_DATAEEPROM_Lock();
     
-    macWrapper->begin(); 
+    macWrapper->reset(868);
+    macWrapper->setDevEui(defaultEUI);
+    macWrapper->setAppEui(defaultEUI);
+    macWrapper->setAppKey(defaultKey);
+    macWrapper->setDevAddr(defaultDevAddr);
+    macWrapper->setNwksKey(defaultKey);
+    macWrapper->setAppsKey(defaultKey);
     LMICbandplan_setSessionInitDefaultChannels();
+    //save default configuration to EEPROM
     macWrapper->save();
 
+    //perform a software reset
     reset();
 }
 
