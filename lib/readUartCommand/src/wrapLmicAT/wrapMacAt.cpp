@@ -269,6 +269,7 @@ String WrapMacAt::forceEnable(){
 //0 = can't be paused
 //4294967295 = mac in idle 
 String WrapMacAt::pause(){
+    LMIC_shutdown();
     paused = 1;
     response = "ok";
     //TODO: calculate time and return it
@@ -278,6 +279,7 @@ String WrapMacAt::pause(){
 
 //resume mac
 String WrapMacAt::resume(){
+    LMIC_reset();
     paused = 0;
     response = "ok";
 
