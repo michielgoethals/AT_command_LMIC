@@ -55,8 +55,11 @@ class WrapRadioAt{
 
     //attributes
     private:
+        u1_t rPaConfig;
         u1_t mc1 = 0, mc2 = 0, mc3 = 0;
         s1_t pwrList[MAX_PWR_VALUES] = {-3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
         float bwList[MAX_BW_VALUES] = {250, 125, 62.5, 31.3, 15.6, 7.8, 3.9, 200, 100, 50, 25, 12.5, 6.3, 3.1, 166.7, 83.3, 41.7, 20.8, 10.4, 5.2, 2.6};
+        u1_t bwMantList[MAX_BW_VALUES] = {16, 20, 24, 16, 20, 24, 16, 20, 24, 16, 20 ,24, 16, 20, 24, 16, 20, 24, 16, 20, 24}; //from datasheet sx1276
+        u1_t bwExpList[MAX_BW_VALUES] = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4 ,4, 5, 5, 5, 6, 6, 6, 7, 7, 7}; //from datasheet sx1276
         String response;
 };

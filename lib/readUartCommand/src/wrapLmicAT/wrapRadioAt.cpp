@@ -111,9 +111,9 @@ String WrapRadioAt::setFreq(u4_t freq){
         //set frequency: Freq = Fstep * Fregister => Fregister = Freq / Fstep
         //Frequency to set in register is 24 bits = freq * 2^19 / 32Mhz
         uint64_t frf = ((uint64_t)freq << 19) / 32000000;
-        writeReg(RegFrfMsb, (u1_t)(frf>>16));
-        writeReg(RegFrfMid, (u1_t)(frf>> 8));
-        writeReg(RegFrfLsb, (u1_t)(frf>> 0));
+        writeReg(RegFrfMsb, (u1_t)(frf>>16)); //get MSB bits(16-23)
+        writeReg(RegFrfMid, (u1_t)(frf>> 8)); //get Mid bits(8-15)
+        writeReg(RegFrfLsb, (u1_t)(frf>> 0)); //get LSB bits(0-7)
     }else{
         response = "invalid_param";
     }
@@ -122,10 +122,17 @@ String WrapRadioAt::setFreq(u4_t freq){
 
 //set transmission output power (-3-15)
 String WrapRadioAt::setPwr(s1_t pwrout){
+    u1_t rPaConfig;
+    u1_t rPaDac;
+    u1_t rOcp;
+
     response = "ok";
-    RegPaConfig;
+
     if(pwrout >= -3 && pwrout <= 15){
-        //set power output
+        rPaConfig = pwrout | SX1276_PAC_MAX_POWER_MASK;
+        writeReg(RegPaConfig, rPaConfig);
+        writeReg(RegPaDac, (readReg(RegPaDac) & ~SX127X_PADAC_POWER_MASK) | rPaDac);
+        writeReg(RegOcp, rOcp | SX127X_OCP_ENA);
     }else{
         response = "invalid_param";
     }
@@ -163,9 +170,17 @@ String WrapRadioAt::setSf(char* spreadingFactor){
 // 166.7, 83.3, 41.7, 20.8, 10.4, 5.2, 2.6
 String WrapRadioAt::setAfcBw(float autoFreqBand){
     response = "ok";
+
+    //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
+    //RxBWMantAfc (bit 4-3) and RxBWExpAfc (bit 2-0)
+
     for(int i = 0; i < MAX_BW_VALUES; i++){
         if(autoFreqBand == bwList[i]){
             //set auto frequency correction bandwidth
+            u1_t rxBwMant = bwMantList[i];
+            u1_t rxBwExp = bwExpList[i];
+            u1_t rxBwvalue = (rxBwMant << 3) | rxBwExp;
+            writeReg(FSKRegAfcBw, rxBwvalue);
         }else{
             response = "invalid_param";
         }
@@ -176,9 +191,17 @@ String WrapRadioAt::setAfcBw(float autoFreqBand){
 // set receiving signal bandwidth in kHz
 String WrapRadioAt::setRxBw(float rxBandWidth){
     response = "ok";
+
+    //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
+    //RxBWMantAfc (bit 4-3) and RxBWExpAfc (bit 2-0)
+  
     for(int i = 0; i < MAX_BW_VALUES; i++){
         if(rxBandWidth == bwList[i]){
             //set auto frequency correction bandwidth
+            u1_t rxBwMant = bwMantList[i];
+            u1_t rxBwExp = bwExpList[i];
+            u1_t rxBwvalue = (rxBwMant << 3) | rxBwExp;
+            writeReg(FSKRegRxBw, rxBwvalue);
         }else{
             response = "invalid_param";
         }
@@ -189,9 +212,15 @@ String WrapRadioAt::setRxBw(float rxBandWidth){
 // set FSK bit rate value in bits per second (0 - 65535)
 String WrapRadioAt::setBitRate(u2_t fskBitRate){
     response = "ok";
+    
+    //fskBitRate = Fxtal / BitRateRegValue+ BitRateFrac/16 (BitRateFrac = 0x00 default)
+    //fskBitRate = Fxtal / BitRateRegValue
+    //BitRateRegValue = Fxtal / fskBitRate = 32Mhz / fskBitRate
 
-    writeReg(FSKRegBitrateMsb, 0x02); // 50kbps
-    writeReg(FSKRegBitrateLsb, 0x80);
+    //set bit rate
+    u2_t bitRateRegValue = 32000000 / fskBitRate;
+    writeReg(FSKRegBitrateMsb, (u1_t)(bitRateRegValue >> 8)); //get the 8 most significant bits
+    writeReg(FSKRegBitrateLsb, (u1_t)(bitRateRegValue >> 0)); //get the 8 least significant bits
    
     return response;
 }
@@ -200,9 +229,13 @@ String WrapRadioAt::setBitRate(u2_t fskBitRate){
 String WrapRadioAt::setFdev(u2_t freqDev){
     response = "ok";
 
+    //Fdev = Fstep * FdevRegister(15:0) 
+    //FdevRegister(15:0) = Fdev / Fstep = freqDev / Fxtal / 2^19 = freqDev / 61.03515625
+    
     // set frequency deviation
-    writeReg(FSKRegFdevMsb, 0x01); // +/- 25kHz
-    writeReg(FSKRegFdevLsb, 0x99);
+    u2_t fdevRegValue = freqDev / 32000000 / 2^19;
+    writeReg(FSKRegFdevMsb, (u1_t)(fdevRegValue >> 8)); //get the 8 most significant bits
+    writeReg(FSKRegFdevLsb, (u1_t)(fdevRegValue >> 0)); //get the 8 least significant bits
 
     return  response;
 }
@@ -210,6 +243,13 @@ String WrapRadioAt::setFdev(u2_t freqDev){
 //set preamble length (0 - 65535)
 String WrapRadioAt::setPrLen(u2_t preamble){
     response = "ok";
+
+    writeReg(LORARegPreambleMsb, (u1_t)(preamble >> 8)); //get the 8 most significant bits
+    writeReg(LORARegPreambleLsb, (u1_t)(preamble >> 0)); //get the 8 least significant bits
+
+    writeReg(FSKRegPreambleMsb, (u1_t)(preamble >> 8)); //get the 8 most significant bits
+    writeReg(FSKRegPreambleLsb, (u1_t)(preamble >> 0)); //get the 8 least significant bits
+
     return  response;
 }
 
@@ -220,7 +260,10 @@ String WrapRadioAt::setCrc(char* crcHeader){
         mc2 |= SX1276_MC2_RX_PAYLOAD_CRCON;
     }else if(strcmp(crcHeader, "off") == 0){
         mc2 &= ~SX1276_MC2_RX_PAYLOAD_CRCON;
+    }else{
+        response = "invalid_param";
     }
+
     writeReg(LORARegModemConfig2, mc2);
     return  response;
 }
@@ -274,16 +317,22 @@ String WrapRadioAt::setSync(char* syncWord){
     response = "ok";
     u1_t nbOfBytes = strlen(syncWord); // max 8 bytes
 
-    //get first byte of sync word
-    u1_t syncValue1 = syncWord[0];
-    writeReg(FSKRegSyncConfig, 0x12); // no auto restart, preamble 0xAA, enable, fill FIFO, 3 bytes sync
+    //auto restart off (bit 7-6) = 1
+    //preamble polarity default (bit 5) = 0xAA, 
+    //disable sync word generation enable (bit 4) = 0, 
+    // reserved (bit 3) = 0
+    //syncSize (bit 2-0)= nbOfBytes
+    u1_t regSyncConfigValue = 11000000 | nbOfBytes; // no auto restart, preamble 0xAA, disable, fill FIFO, nbOfBytes sync
+    writeReg(FSKRegSyncConfig, regSyncConfigValue); 
 
-    // set sync word
-    writeReg(LORARegSyncWord, LORA_MAC_PREAMBLE);
-    // set sync value
-    writeReg(FSKRegSyncValue1, 0xC1);
-    writeReg(FSKRegSyncValue2, 0x94);
-    writeReg(FSKRegSyncValue3, 0xC1);
+    // set sync word LoRa
+    writeReg(LORARegSyncWord, syncWord[0]);
+
+    // set sync value FSK
+    for (u1_t i = 0; i < nbOfBytes; i++)
+    {
+        writeReg(FSKRegSyncValue1 + i, syncWord[i]);
+    }
 
     return response;
 }   
