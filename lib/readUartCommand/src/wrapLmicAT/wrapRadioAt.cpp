@@ -357,71 +357,73 @@ String WrapRadioAt::setBw(u2_t bandWidth){
 }
 
 //get data shaping configuration
-void WrapRadioAt::getBt(){
+String WrapRadioAt::getBt(){
 
 }
 
 //get current operation mode of the radio lora of fsk
-void WrapRadioAt::getMod(){
+String WrapRadioAt::getMod(){
 
 }
 
 // get current frequency of the radio
-void WrapRadioAt::getFreq(){
+u4_t WrapRadioAt::getFreq(){
 
 }
 
 //get current power level settings of the radio
-void WrapRadioAt::getPwr(){
+s1_t WrapRadioAt::getPwr(){
 
 }
 
 //get current spreading factor
-void WrapRadioAt::getSf(){
+String WrapRadioAt::getSf(){
 
 }
 
 //
-void WrapRadioAt::getAfcBw(){
+float WrapRadioAt::getAfcBw(){
 
 }
 
-void WrapRadioAt::getRxBw(){
+float WrapRadioAt::getRxBw(){
 
 }
 
-void WrapRadioAt::getBitRate(){
+u2_t WrapRadioAt::getBitRate(){
 
 }
 
-void WrapRadioAt::getFdev(){
+u2_t WrapRadioAt::getFdev(){
 
 }
 
-void WrapRadioAt::getPrLen(){
+u2_t WrapRadioAt::getPrLen(){
 
 }
 
-void WrapRadioAt::getCrc(){
+String WrapRadioAt::getCrc(){
 
 }
 
-void WrapRadioAt::getIqi(){
+String WrapRadioAt::getIqi(){
 
 }
 
-void WrapRadioAt::getCr(){
+String WrapRadioAt::getCr(){
 
 }
 
-void WrapRadioAt::getWdt(){
+u4_t WrapRadioAt::getWdt(){
 
 }
 
-void WrapRadioAt::getBw(){
+// get bandwidth of the radio
+u2_t WrapRadioAt::getBw(){
 
 }
 
-void WrapRadioAt::getSnr(){
-    
+//get snr of last received packet
+s1_t WrapRadioAt::getSnr(){
+    return readReg(LORARegPktSnrValue);
 }

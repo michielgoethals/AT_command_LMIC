@@ -36,22 +36,22 @@ class WrapRadioAt{
     
     //get commands
     public:
-        void getBt();
-        void getMod();
-        void getFreq();
-        void getPwr();
-        void getSf();
-        void getAfcBw();
-        void getRxBw();
-        void getBitRate();
-        void getFdev();
-        void getPrLen();
-        void getCrc();
-        void getIqi();
-        void getCr();
-        void getWdt();
-        void getBw();
-        void getSnr();
+        String getBt();
+        String getMod();
+        u4_t getFreq();
+        s1_t getPwr();
+        String getSf();
+        float getAfcBw();
+        float getRxBw();
+        u2_t getBitRate();
+        u2_t getFdev();
+        u2_t getPrLen();
+        String getCrc();
+        String getIqi();
+        String getCr();
+        u4_t getWdt();
+        u2_t getBw();
+        s1_t getSnr();
 
     //attributes
     private:
