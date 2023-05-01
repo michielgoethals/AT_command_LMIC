@@ -524,16 +524,25 @@ String WrapMacAt::setRx2(u1_t dr, u4_t freq){
     
     response = setDr(dr);
 
-    LMIC.dn2Freq = freq; 
+    if(freq >= 863000000 && freq <= 870000000){
+        LMIC.dn2Freq = freq; 
+    }else{
+        response = "invalid_param";
+    }
 
     return response;
 }
 
 //set channel frequency for a specific channel (0-15)
-String WrapMacAt::setChFreq(u1_t chID, u4_t frequency){
+String WrapMacAt::setChFreq(u1_t chID, u4_t freq){
     chUpdated = 1;
 
-    LMIC.channelFreq[chID] = frequency;
+    if(freq >= 863000000 && freq <= 870000000){
+        LMIC.dn2Freq = freq; 
+    }else{
+        response = "invalid_param";
+    }
+    LMIC.channelFreq[chID] = freq;
 
     return "ok";
 }

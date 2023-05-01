@@ -193,7 +193,7 @@ String WrapRadioAt::setRxBw(float rxBandWidth){
     response = "ok";
 
     //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
-    //RxBWMantAfc (bit 4-3) and RxBWExpAfc (bit 2-0)
+    //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
   
     for(int i = 0; i < MAX_BW_VALUES; i++){
         if(rxBandWidth == bwList[i]){
@@ -358,69 +358,232 @@ String WrapRadioAt::setBw(u2_t bandWidth){
 
 //get data shaping configuration
 String WrapRadioAt::getBt(){
+    u1_t bt = readReg(RegPaRamp);
+    String btString;
 
+    if(bt & 0x09){
+        btString = "none";
+    }else if (bt & 0x1D){
+        btString = "1.0";
+    }else if (bt & 0X29){
+        btString = "0.5";
+    }else if (bt & 0x39){
+        btString = "0.3";
+    }else{
+        btString = "no_valid_bt_found";
+    }
+
+    return btString;
 }
 
 //get current operation mode of the radio lora of fsk
 String WrapRadioAt::getMod(){
+    String mode;
+    if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_LORA){
+        mode = "lora";
+    }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK_SX127x_ModulationType_FSK){
+        mode = "fsk";
+    }else{
+        mode = "no_valid_mode_found";
+    }
+
+    return mode;
 
 }
 
 // get current frequency of the radio
 u4_t WrapRadioAt::getFreq(){
+    u4_t freq = 0;
+    u1_t freq3 = readReg(RegFrfMsb);
+    u1_t freq2 = readReg(RegFrfMid);
+    u1_t freq1 = readReg(RegFrfLsb);
+
+    freq = (freq3 << 16) | (freq2 << 8) | freq1;
+
+    return freq;
 
 }
 
 //get current power level settings of the radio
 s1_t WrapRadioAt::getPwr(){
+    s1_t pwr = 0;
+    u1_t pwrReg = readReg(RegPaConfig);
+    u1_t pwrLevel = readReg(RegPaDac);
 
+    if(pwrReg & 0x80){
+        pwr = pwrLevel;
+    }else{
+        pwr = pwrReg & 0x0F;
+    }
+
+    return pwr;
 }
 
 //get current spreading factor
 String WrapRadioAt::getSf(){
+    u2_t config2 = readReg(LORARegModemConfig2);
 
+    String sf;
+
+    if(config2 & SX1272_MC2_SF7){
+        sf = "7";
+    }else if(config2 & SX1272_MC2_SF8){
+        sf = "8";
+    }else if(config2 & SX1272_MC2_SF9){
+        sf = "9";
+    }else if(config2 & SX1272_MC2_SF10){
+        sf = "10";
+    }else if(config2 & SX1272_MC2_SF11){
+        sf = "11";
+    }else if(config2 & SX1272_MC2_SF12){
+        sf = "12";
+    }else{
+        sf = "no_valid_sf";
+    }
+
+    return sf;
 }
 
 //
 float WrapRadioAt::getAfcBw(){
+    u1_t rxBwvalue = readReg(FSKRegAfcBw);
 
+    //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
+    u1_t rxBwMant = (rxBwvalue >> 3) & 0x07;
+    u1_t rxBwExp = rxBwvalue & 0x07;
+
+    float rxBw = 0;
+
+    for(u1_t i = 0; i < MAX_BW_VALUES; i++){
+        if(rxBwMant == bwMantList[i] && rxBwExp == bwExpList[i]){
+            rxBw = bwList[i];
+            break;
+        }
+    }
+
+    return rxBw;
 }
 
+//get current receiving signal bandwidth in kHz
 float WrapRadioAt::getRxBw(){
+    u1_t rxBwvalue = readReg(FSKRegRxBw);
 
+    //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
+    u1_t rxBwMant = (rxBwvalue >> 3) & 0x07;
+    u1_t rxBwExp = rxBwvalue & 0x07;
+
+    float rxBw = 0;
+
+    for(u1_t i = 0; i < MAX_BW_VALUES; i++){
+        if(rxBwMant == bwMantList[i] && rxBwExp == bwExpList[i]){
+            rxBw = bwList[i];
+            break;
+        }
+    }
+
+    return rxBw;
 }
 
+//get current bit rate
 u2_t WrapRadioAt::getBitRate(){
+    u1_t bitRateMsb = readReg(FSKRegBitrateMsb);
+    u1_t bitRateLsb = readReg(FSKRegBitrateLsb);
 
+    u2_t bitRate = (bitRateMsb << 8) | bitRateLsb;
+
+    return bitRate;
 }
 
+//get current frequency deviation
 u2_t WrapRadioAt::getFdev(){
+    u1_t fdevMsb = readReg(FSKRegFdevMsb);
+    u1_t fdevLsb = readReg(FSKRegFdevLsb);
 
+    u2_t fdev = (fdevMsb << 8) | fdevLsb;
+
+    return fdev;
 }
 
+//get current preamble length
 u2_t WrapRadioAt::getPrLen(){
+    u1_t prMsb = readReg(LORARegPreambleMsb);
+    u1_t prLSB = readReg(LORARegPreambleLsb);
 
+    u2_t prLength = (prMsb << 8) | prLSB;
+
+    return prLength;
 }
 
+// get current CRC header type (on, off)
 String WrapRadioAt::getCrc(){
+    u1_t config2 = readReg(LORARegModemConfig2);
+    String crc;
 
+    if (config2 & SX1276_MC2_RX_PAYLOAD_CRCON){
+        crc = "on";
+    }else{
+        crc = "off";
+    }
+
+    return crc;
 }
 
+//get current IQ inversion (on, off)
 String WrapRadioAt::getIqi(){
+    u1_t iqi = readReg(LORARegInvertIQ);
 
+    if(iqi == 0){
+        response =  "off";
+    }else{
+        response = "on";
+    }
+
+    return response;
+    
 }
 
+//get current coding rate (4/5, 4/6, 4/7, 4/8)
 String WrapRadioAt::getCr(){
+    u1_t config1 = readReg(LORARegModemConfig1);
+    String cr;
 
+    if (config1 & SX1276_MC1_CR_4_5){
+        cr = "4/5";
+
+    }else if(config1 & SX1276_MC1_CR_4_6){
+        cr = "4/6";
+    }else if(config1 & SX1276_MC1_CR_4_7){
+        cr = "4/7";
+    }else if(config1 & SX1276_MC1_CR_4_8){
+        cr = "4/8";
+    }else{
+        cr = "not_found";
+    }
+
+    return cr;
 }
 
+//get current watch dog timer time-out lenght in ms
 u4_t WrapRadioAt::getWdt(){
 
 }
 
 // get bandwidth of the radio
 u2_t WrapRadioAt::getBw(){
+    u1_t config1 = readReg(LORARegModemConfig1);
+    u2_t bw;
 
+    if (config1 & SX1276_MC1_BW_125){
+        bw = 125;
+    }else if(config1 & SX1276_MC1_BW_250){
+        bw = 250;
+    }else if(config1 & SX1276_MC1_BW_500){
+        bw = 500;
+    }else{
+        bw = 0;
+    }
+
+    return bw;
 }
 
 //get snr of last received packet
