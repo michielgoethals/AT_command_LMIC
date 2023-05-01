@@ -130,19 +130,19 @@ void ReadUartCommand::parseMacSetCommand(char* setCommand){
         sendResponse(macWrapper.setAdr(param));
     }else if(strcmp(word, "bat")==0){
         int level = atoi(param);
-        if (level <= 255){sendResponse(macWrapper.setBat(atoi(param)));}
+        if (level <= 255){sendResponse(macWrapper.setBat(level));}
         else{sendResponse("invalid_param");}
     }else if(strcmp(word, "retx")==0){
         int retx = atoi(param);
-        if (retx <= 255){sendResponse(macWrapper.setRetX(atoi(param)));}
+        if (retx <= 255){sendResponse(macWrapper.setRetX(retx));}
         else{sendResponse("invalid_param");}
     }else if(strcmp(word, "linkchk")==0){
         int sec = atoi(param);
-        if (sec <= 65535){sendResponse(macWrapper.setLinkChk(atoi(param)));}
+        if (sec <= 65535){sendResponse(macWrapper.setLinkChk(sec));}
         else{sendResponse("invalid_param");}
     }else if(strcmp(word, "rxdelay1")==0){
         int delay = atoi(param);
-        if (delay <= 65535){sendResponse(macWrapper.setRxDelay1(atoi(param)));}
+        if (delay <= 65535){sendResponse(macWrapper.setRxDelay1(delay));}
         else{sendResponse("invalid_param");}
     }else if(strcmp(word, "ar")==0){
         sendResponse(macWrapper.setAdr(param));
@@ -338,7 +338,107 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
 }
 
 void ReadUartCommand::parseRadioCommand(char* command){
-    //radioWrapper
+    char * word;
+    word = strtok(command, " ");
+    int len = strlen(word)+1;
+    
+    if(strcmp(word, "rx")==0){
+        int windowSize = atoi(getRemainingPart(command,len));
+        if (windowSize <= 65535){sendResponse(radioWrapper.rx(windowSize));}
+        else{sendResponse("invalid_param");}
+    }else if(strcmp(word, "tx")==0){
+        sendResponse(radioWrapper.tx(getRemainingPart(command,len)));
+    }else if(strcmp(word, "cw")==0){
+        sendResponse(radioWrapper.cw(getRemainingPart(command,len)));
+    }else if(strcmp(word, "set")==0){
+        parseRadioSetCommand(getRemainingPart(command,len));
+    }else if(strcmp(word, "get")==0){
+        parseRadioGetCommand(getRemainingPart(command, len));
+    }else{
+        sendResponse("invalid_param");
+    }
+}
+
+void ReadUartCommand::parseRadioSetCommand(char* setCommand){
+    char * word;
+    word = strtok(setCommand, " ");
+    int len = strlen(word)+1;
+
+    if (strcmp(word, "bt")==0){
+        sendResponse(radioWrapper.setBt(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "mod")==0){
+        sendResponse(radioWrapper.setMod(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "freq")==0){
+        sendResponse(radioWrapper.setFreq(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "pwr")==0){
+        sendResponse(radioWrapper.setPwr(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "sf")==0){
+        sendResponse(radioWrapper.setSf(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "afcbw")==0){
+        sendResponse(radioWrapper.setAfcBw(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "rxbw")==0){
+        sendResponse(radioWrapper.setRxBw(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "bitrate")==0){
+        sendResponse(radioWrapper.setBitRate(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "fdev")==0){
+        sendResponse(radioWrapper.setFdev(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "prlen")==0){
+        sendResponse(radioWrapper.setPrLen(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "crc")==0){
+        sendResponse(radioWrapper.setCrc(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "iqi")==0){
+        sendResponse(radioWrapper.setIqi(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "cr")==0){
+        sendResponse(radioWrapper.setCr(getRemainingPart(setCommand,len)));
+    }else if(strcmp(word, "wdt")==0){
+        sendResponse(radioWrapper.setWdt(atoi(getRemainingPart(setCommand,len))));
+    }else if(strcmp(word, "bw")==0){
+        sendResponse(radioWrapper.setBw(atoi(getRemainingPart(setCommand,len))));
+    }else{
+        sendResponse("invalid_param");
+    }
+}   
+
+void ReadUartCommand::parseRadioGetCommand(char* getCommand){
+    char * word;
+    word = strtok(getCommand, " ");
+    int len = strlen(word)+1;
+
+    if(strcmp(word, "bt")==0){
+        sendResponse(radioWrapper.getBt());
+    }else if(strcmp(word, "mod")==0){
+        sendResponse(radioWrapper.getMod());
+    }else if(strcmp(word, "freq")==0){
+        sendResponse(radioWrapper.getFreq());
+    }else if(strcmp(word, "pwr")==0){
+        sendResponse(radioWrapper.getPwr());
+    }else if(strcmp(word, "sf")==0){
+        sendResponse(radioWrapper.getSf());
+    }else if(strcmp(word, "afcbw")==0){
+        sendResponse(radioWrapper.getAfcBw());
+    }else if(strcmp(word, "rxbw")==0){
+        sendResponse(radioWrapper.getRxBw());
+    }else if(strcmp(word, "bitrate")==0){
+        sendResponse(radioWrapper.getBitRate());
+    }else if(strcmp(word, "fdev")==0){
+        sendResponse(radioWrapper.getFdev());
+    }else if(strcmp(word, "prlen")==0){
+        sendResponse(radioWrapper.getPrLen());
+    }else if(strcmp(word, "crc")==0){
+        sendResponse(radioWrapper.getCrc());
+    }else if(strcmp(word, "iqi")==0){
+        sendResponse(radioWrapper.getIqi());
+    }else if(strcmp(word, "cr")==0){
+        sendResponse(radioWrapper.getCr());
+    }else if(strcmp(word, "wdt")==0){
+        sendResponse(radioWrapper.getWdt());
+    }else if(strcmp(word, "bw")==0){
+        sendResponse(radioWrapper.getBw());
+    }else if(strcmp(word, "snr")==0){
+        sendResponse(radioWrapper.getSnr());
+    }else{
+        sendResponse("invalid_param");
+    }
 }
 
 void ReadUartCommand::sendResponse(String response){

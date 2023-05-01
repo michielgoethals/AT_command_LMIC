@@ -42,9 +42,9 @@ class ReadUartCommand{
 
     //radio related commands
         void parseRadioCommand(char* command);
-        
+        void parseRadioSetCommand(char* setCommand);
+        void parseRadioGetCommand(char* getCommand);
  
-        
     //private functions
     private:
         char * getRemainingPart(char* arr, int offset);
