@@ -4,7 +4,6 @@
 
 osjob_t initjob;
 osjob_t readAt;
-osjob_t blink;
 
 ReadUartCommand reader; 
 
