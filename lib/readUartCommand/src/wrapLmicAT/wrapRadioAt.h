@@ -2,40 +2,25 @@
 
 #include "wrapMacAt.h"
 
-#define RegFifo                                    0x00 // common
-#define RegOpMode                                  0x01 // common       see below
-#define FSKRegBitrateMsb                           0x02 //              -
-#define FSKRegBitrateLsb                           0x03 //              -
-#define FSKRegFdevMsb                              0x04 //              -
-#define FSKRegFdevLsb                              0x05 //              -
-#define RegFrfMsb                                  0x06 // common       FSK: 1272: 915; 1276: 434 MHz
-#define RegFrfMid                                  0x07 // common       ditto
-#define RegFrfLsb                                  0x08 // common       ditto
-#define RegPaConfig                                0x09 // common       see below, many diffs
-#define RegPaRamp                                  0x0A // common       see below: bits 6..4 are diff
-#define RegOcp                                     0x0B // common       -
-#define RegLna                                     0x0C // common       bits 4..0 are diff.
-#define FSKRegRxConfig                             0x0D //              -
-#define LORARegFifoAddrPtr                         0x0D
-#define FSKRegRssiConfig                           0x0E //              -
-#define LORARegFifoTxBaseAddr                      0x0E
-#define FSKRegRssiCollision                        0x0F //              -
-#define LORARegFifoRxBaseAddr                      0x0F
-#define FSKRegRssiThresh                           0x10 //              -
-#define LORARegFifoRxCurrentAddr                   0x10
-#define FSKRegRssiValue                            0x11 //              -
-#define LORARegIrqFlagsMask                        0x11
+// ----------------------------------------
+// Registers Mapping copied from lmic library radio.c
+// Registers can be found in the datasheet of the SX1276/RFM95
+// ----------------------------------------
+#define RegFifo                                    0x00
+#define RegOpMode                                  0x01
+#define FSKRegBitrateMsb                           0x02
+#define FSKRegBitrateLsb                           0x03 
+#define FSKRegFdevMsb                              0x04 
+#define FSKRegFdevLsb                              0x05
+#define RegFrfMsb                                  0x06
+#define RegFrfMid                                  0x07
+#define RegFrfLsb                                  0x08
+#define RegPaConfig                                0x09
+#define RegPaRamp                                  0x0A
+#define RegOcp                                     0x0B
+#define RegLna                                     0x0C
 #define FSKRegRxBw                                 0x12 //              -
-#define LORARegIrqFlags                            0x12
 #define FSKRegAfcBw                                0x13 //              -
-#define LORARegRxNbBytes                           0x13
-#define FSKRegOokPeak                              0x14 //              -
-#define LORARegRxHeaderCntValueMsb                 0x14
-#define FSKRegOokFix                               0x15 //              -
-#define LORARegRxHeaderCntValueLsb                 0x15
-#define FSKRegOokAvg                               0x16 //              -
-#define LORARegRxPacketCntValueMsb                 0x16
-#define LORARegRxpacketCntValueLsb                 0x17
 #define LORARegModemStat                           0x18
 #define LORARegPktSnrValue                         0x19
 #define FSKRegAfcFei                               0x1A //              -
@@ -104,7 +89,6 @@
 #define RegDioMapping1                             0x40 // common
 #define RegDioMapping2                             0x41 // common
 #define RegVersion                                 0x42 // common
-#define RegTcxo                                    0x4B // common       different addresses, same bits
 #define RegPaDac                                   0x4D // common       differnet addresses, same bits
 
 // spread factors and mode for RegModemConfig2
