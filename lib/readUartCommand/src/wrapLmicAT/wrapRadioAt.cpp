@@ -45,8 +45,23 @@ void WrapRadioAt::opmodeLora() {
 }
 
 void WrapRadioAt::opmodeFSK() {
-    u1_t u = OPMODE_FSK_SX127X_SETUP;
+    u1_t u = OPMODE_FSK;
     writeOpmode(u);
+}
+
+float WrapRadioAt::calculateBw(u1_t regBwValue){
+    u1_t rxBwMant = (regBwValue >> 3) & 0x1F; //bit 4-3
+    u1_t rxBwExp = regBwValue & 0x07; //bit 2-0
+
+    float rxBw = 0;
+
+    for(u1_t i = 0; i < MAX_BW_VALUES; i++){
+        if(rxBwMant == bwMantList[i] && rxBwExp == bwExpList[i]){
+            rxBw = bwList[i];
+            break;
+        }
+    }
+    return rxBw;
 }
 
 //number of symbols (for LoRa) or time out (for FSK) that receiver will be opened (0-65535)
@@ -83,7 +98,7 @@ String WrapRadioAt::tx(char* data){
             }else{
                 response = "invalid_param";
             }
-        }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK_SX127X_SETUP){
+        }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK){
             if(strlen(data) <= 64){
                 opmode(OPMODE_TX);
             }else{
@@ -242,8 +257,8 @@ String WrapRadioAt::setRxBw(float rxBandWidth){
             //set auto frequency correction bandwidth
             u1_t rxBwMant = bwMantList[i];
             u1_t rxBwExp = bwExpList[i];
-            u1_t rxBwvalue = (rxBwMant << 3) | rxBwExp;
-            writeReg(FSKRegRxBw, rxBwvalue);
+            u1_t rxBwValue = (rxBwMant << 3) | rxBwExp;
+            writeReg(FSKRegRxBw, rxBwValue);
         }else{
             response = "invalid_param";
         }
@@ -346,8 +361,7 @@ String WrapRadioAt::setCr(char* codingRate){
 // 0 is disabled 
 String WrapRadioAt::setWdt(u4_t watchDog){
     response = "ok";
-    return response;
-    
+    return response;  
 }
 
 //set sync word during communication
@@ -400,13 +414,13 @@ String WrapRadioAt::getBt(){
     u1_t bt = readReg(RegPaRamp);
     String btString;
 
-    if(bt & 0x09){
+    if((bt & 0x09)==0){
         btString = "none";
-    }else if (bt & 0x1D){
+    }else if((bt & 0x1D)==0){
         btString = "1.0";
-    }else if (bt & 0X29){
+    }else if((bt & 0X29)==0){
         btString = "0.5";
-    }else if (bt & 0x39){
+    }else if((bt & 0x39)==0){
         btString = "0.3";
     }else{
         btString = "no_valid_bt_found";
@@ -419,7 +433,7 @@ String WrapRadioAt::getMod(){
     String mode;
     if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_LORA){
         mode = "lora";
-    }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK_SX127x_ModulationType_FSK){
+    }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK){
         mode = "fsk";
     }else{
         mode = "no_valid_mode_found";
@@ -447,7 +461,7 @@ s1_t WrapRadioAt::getPwr(){
     u1_t pwrReg = readReg(RegPaConfig);
     u1_t pwrLevel = readReg(RegPaDac);
 
-    if(pwrReg & 0x80){
+    if((pwrReg & 0x80)==0){
         pwr = pwrLevel;
     }else{
         pwr = pwrReg & 0x0F;
@@ -461,17 +475,17 @@ String WrapRadioAt::getSf(){
 
     String sf;
 
-    if(config2 & SX1272_MC2_SF7){
+    if((config2 & SX1272_MC2_SF7)==0){
         sf = "7";
-    }else if(config2 & SX1272_MC2_SF8){
+    }else if((config2 & SX1272_MC2_SF8)==0){
         sf = "8";
-    }else if(config2 & SX1272_MC2_SF9){
+    }else if((config2 & SX1272_MC2_SF9)==0){
         sf = "9";
-    }else if(config2 & SX1272_MC2_SF10){
+    }else if((config2 & SX1272_MC2_SF10)==0){
         sf = "10";
-    }else if(config2 & SX1272_MC2_SF11){
+    }else if((config2 & SX1272_MC2_SF11)==0){
         sf = "11";
-    }else if(config2 & SX1272_MC2_SF12){
+    }else if((config2 & SX1272_MC2_SF12)==0){
         sf = "12";
     }else{
         sf = "no_valid_sf";
@@ -479,41 +493,17 @@ String WrapRadioAt::getSf(){
     return sf;
 }
 
-//
+//get current automatic frequency correction bandwidth
 float WrapRadioAt::getAfcBw(){
-    u1_t rxBwvalue = readReg(FSKRegAfcBw);
-
-    //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
-    u1_t rxBwMant = (rxBwvalue >> 3) & 0x07;
-    u1_t rxBwExp = rxBwvalue & 0x07;
-
-    float rxBw = 0;
-
-    for(u1_t i = 0; i < MAX_BW_VALUES; i++){
-        if(rxBwMant == bwMantList[i] && rxBwExp == bwExpList[i]){
-            rxBw = bwList[i];
-            break;
-        }
-    }
-    return rxBw;
+    u1_t afcBwvalue = readReg(FSKRegAfcBw);
+    float afcBw = calculateBw(afcBwvalue); 
+    return afcBw;
 }
 
 //get current receiving signal bandwidth in kHz
 float WrapRadioAt::getRxBw(){
     u1_t rxBwvalue = readReg(FSKRegRxBw);
-
-    //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
-    u1_t rxBwMant = (rxBwvalue >> 3) & 0x07;
-    u1_t rxBwExp = rxBwvalue & 0x07;
-
-    float rxBw = 0;
-
-    for(u1_t i = 0; i < MAX_BW_VALUES; i++){
-        if(rxBwMant == bwMantList[i] && rxBwExp == bwExpList[i]){
-            rxBw = bwList[i];
-            break;
-        }
-    }
+    float rxBw = calculateBw(rxBwvalue);
     return rxBw;
 }
 
@@ -552,7 +542,7 @@ String WrapRadioAt::getCrc(){
     u1_t config2 = readReg(LORARegModemConfig2);
     String crc;
 
-    if (config2 & SX1276_MC2_RX_PAYLOAD_CRCON){
+    if ((config2 & SX1276_MC2_RX_PAYLOAD_CRCON)==0){
         crc = "on";
     }else{
         crc = "off";
@@ -577,14 +567,13 @@ String WrapRadioAt::getCr(){
     u1_t config1 = readReg(LORARegModemConfig1);
     String cr;
 
-    if (config1 & SX1276_MC1_CR_4_5){
+    if ((config1 & SX1276_MC1_CR_4_5)==0){
         cr = "4/5";
-
-    }else if(config1 & SX1276_MC1_CR_4_6){
+    }else if((config1 & SX1276_MC1_CR_4_6)==0){
         cr = "4/6";
-    }else if(config1 & SX1276_MC1_CR_4_7){
+    }else if((config1 & SX1276_MC1_CR_4_7)==0){
         cr = "4/7";
-    }else if(config1 & SX1276_MC1_CR_4_8){
+    }else if((config1 & SX1276_MC1_CR_4_8)==0){
         cr = "4/8";
     }else{
         cr = "not_found";
@@ -602,11 +591,11 @@ u2_t WrapRadioAt::getBw(){
     u1_t config1 = readReg(LORARegModemConfig1);
     u2_t bw;
 
-    if (config1 & SX1276_MC1_BW_125){
+    if ((config1 & SX1276_MC1_BW_125) == 0){
         bw = 125;
-    }else if(config1 & SX1276_MC1_BW_250){
+    }else if((config1 & SX1276_MC1_BW_250)==0){
         bw = 250;
-    }else if(config1 & SX1276_MC1_BW_500){
+    }else if((config1 & SX1276_MC1_BW_500)==0){
         bw = 500;
     }else{
         bw = 0;

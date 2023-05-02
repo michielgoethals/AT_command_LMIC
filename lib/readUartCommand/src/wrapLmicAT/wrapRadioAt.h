@@ -148,8 +148,7 @@
 
 // FSK opmode bits
 // bits 6:5 are the same for 1272 and 1276
-#define OPMODE_FSK_SX127x_ModulationType_FSK            (0u << 5)
-#define OPMODE_FSK_SX127X_SETUP     (OPMODE_FSK_SX127x_ModulationType_FSK)
+#define OPMODE_FSK            (0u << 5)
 
 #define MAX_PWR_VALUES      19
 #define MAX_BW_VALUES       21
@@ -209,6 +208,7 @@ class WrapRadioAt{
         void opmode(u1_t mode);
         void opmodeLora();
         void opmodeFSK();
+        float calculateBw(u1_t regBwValue);
 
     //attributes
     private:
