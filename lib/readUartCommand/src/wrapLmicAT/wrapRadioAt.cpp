@@ -1,5 +1,54 @@
 #include "wrapRadioAt.h"
 
+//private functions from radio.c LMIC library
+void WrapRadioAt::writeReg (u1_t addr, u1_t data ) {
+    hal_spi_write(addr | 0x80, &data, 1);
+}
+
+u1_t WrapRadioAt::readReg (u1_t addr) {
+    u1_t buf[1];
+    hal_spi_read(addr & 0x7f, buf, 1);
+    return buf[0];
+}
+
+void WrapRadioAt::writeBuf (u1_t addr, xref2u1_t buf, u1_t len) {
+    hal_spi_write(addr | 0x80, buf, len);
+}
+
+void WrapRadioAt::readBuf (u1_t addr, xref2u1_t buf, u1_t len) {
+    hal_spi_read(addr & 0x7f, buf, len);
+}
+
+void WrapRadioAt::requestModuleActive(bit_t state) {
+    ostime_t const ticks = hal_setModuleActive(state);
+
+    if (ticks)
+        hal_waitUntil(os_getTime() + ticks);;
+}
+
+void WrapRadioAt::writeOpmode(u1_t mode) {
+    u1_t const maskedMode = mode & OPMODE_MASK;
+    if (maskedMode != OPMODE_SLEEP)
+        requestModuleActive(1);
+    writeReg(RegOpMode, mode);
+    if (maskedMode == OPMODE_SLEEP)
+        requestModuleActive(0);
+}
+
+void WrapRadioAt::opmode (u1_t mode) {
+    writeOpmode((readReg(RegOpMode) & ~OPMODE_MASK) | mode);
+}
+
+void WrapRadioAt::opmodeLora() {
+    u1_t u = OPMODE_LORA;
+    writeOpmode(u);
+}
+
+void WrapRadioAt::opmodeFSK() {
+    u1_t u = OPMODE_FSK_SX127X_SETUP;
+    writeOpmode(u);
+}
+
 //number of symbols (for LoRa) or time out (for FSK) that receiver will be opened (0-65535)
 //0 is Continuous reception mode
 String WrapRadioAt::rx(u2_t windowSize){
