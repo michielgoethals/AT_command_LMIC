@@ -64,7 +64,6 @@ String WrapRadioAt::rx(u2_t windowSize){
     }else{
         response = "busy";
     } 
-
     return response;
 }
 
@@ -96,7 +95,6 @@ String WrapRadioAt::tx(char* data){
     }else{
         response = "busy";
     }
-
     return response;
 }
 
@@ -114,7 +112,6 @@ String WrapRadioAt::cw(char* state){
     }else{
         response = "invalid_param";
     }
-
     return response;
 }
 
@@ -148,7 +145,6 @@ String WrapRadioAt::setMod(char* mode){
     }else{
         response = "invalid_param";
     }
-
     return response;
 }
 
@@ -185,7 +181,6 @@ String WrapRadioAt::setPwr(s1_t pwrout){
     }else{
         response = "invalid_param";
     }
-
     return response;
 }
 
@@ -207,9 +202,7 @@ String WrapRadioAt::setSf(char* spreadingFactor){
     }else{
         response = "invalid_param";
     }
-
     writeReg(LORARegModemConfig2, mc2);
-
     return response;
 }
 
@@ -296,6 +289,7 @@ String WrapRadioAt::setPrLen(u2_t preamble){
     writeReg(LORARegPreambleMsb, (u1_t)(preamble >> 8)); //get the 8 most significant bits
     writeReg(LORARegPreambleLsb, (u1_t)(preamble >> 0)); //get the 8 least significant bits
 
+    //write also preamble length for FSK????
     writeReg(FSKRegPreambleMsb, (u1_t)(preamble >> 8)); //get the 8 most significant bits
     writeReg(FSKRegPreambleLsb, (u1_t)(preamble >> 0)); //get the 8 least significant bits
 
@@ -312,7 +306,6 @@ String WrapRadioAt::setCrc(char* crcHeader){
     }else{
         response = "invalid_param";
     }
-
     writeReg(LORARegModemConfig2, mc2);
     return  response;
 }
@@ -328,7 +321,6 @@ String WrapRadioAt::setIqi(char* iqInvert){
     }else{
         response = "invalid_param";
     }
-
     return  response;
 }
 
@@ -346,7 +338,6 @@ String WrapRadioAt::setCr(char* codingRate){
     }else{
         response = "invalid_param";
     }
-
     writeReg(LORARegModemConfig1, mc1);
     return response;
 }
@@ -382,7 +373,6 @@ String WrapRadioAt::setSync(char* syncWord){
     {
         writeReg(FSKRegSyncValue1 + i, syncWord[i]);
     }
-
     return response;
 }   
 
@@ -421,7 +411,6 @@ String WrapRadioAt::getBt(){
     }else{
         btString = "no_valid_bt_found";
     }
-
     return btString;
 }
 
@@ -450,7 +439,6 @@ u4_t WrapRadioAt::getFreq(){
     freq = (freq3 << 16) | (freq2 << 8) | freq1;
 
     return freq;
-
 }
 
 //get current power level settings of the radio
@@ -464,7 +452,6 @@ s1_t WrapRadioAt::getPwr(){
     }else{
         pwr = pwrReg & 0x0F;
     }
-
     return pwr;
 }
 
@@ -489,7 +476,6 @@ String WrapRadioAt::getSf(){
     }else{
         sf = "no_valid_sf";
     }
-
     return sf;
 }
 
@@ -509,7 +495,6 @@ float WrapRadioAt::getAfcBw(){
             break;
         }
     }
-
     return rxBw;
 }
 
@@ -529,7 +514,6 @@ float WrapRadioAt::getRxBw(){
             break;
         }
     }
-
     return rxBw;
 }
 
@@ -573,7 +557,6 @@ String WrapRadioAt::getCrc(){
     }else{
         crc = "off";
     }
-
     return crc;
 }
 
@@ -586,9 +569,7 @@ String WrapRadioAt::getIqi(){
     }else{
         response = "on";
     }
-
     return response;
-    
 }
 
 //get current coding rate (4/5, 4/6, 4/7, 4/8)
@@ -608,7 +589,6 @@ String WrapRadioAt::getCr(){
     }else{
         cr = "not_found";
     }
-
     return cr;
 }
 
@@ -631,7 +611,6 @@ u2_t WrapRadioAt::getBw(){
     }else{
         bw = 0;
     }
-
     return bw;
 }
 
