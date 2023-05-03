@@ -1,13 +1,10 @@
 #include "wrapSysAt.h"
 
 //put system in sleep for a finite number of milliseconds
-String WrapSysAt::sleep(){
-    
-    //return response after sleep is complete
+String WrapSysAt::sleep(u4_t ms){
     response = "not_implemented";
 
     return response;
-
 }
 
 //restore save LoRaWAN configuration from EEPROM
@@ -17,6 +14,9 @@ void WrapSysAt::reset(){
 
 //remove firmware from flash and prepare for new firmware
 void WrapSysAt::eraseFW(){
+    //set all flash memory to 0xFF
+    //set SWD-pins default
+
     //HAL_FLASHEx_Erase(0x8000000, FLASH_TYPEERASE_PAGES, 128);
 }
 
@@ -83,20 +83,6 @@ String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
     return response; 
 }
 
-String WrapSysAt::setPinMode(char* pinName, char* pinMode){
-    /*
-    for(u1_t i = 0; i < MAX_PIN_MODES; i++){
-        if(String(pinMode) == pinModes[i]){
-           response = "ok";
-           //TO DO: set pinmode
-        }else{
-            response = "invalid_param";
-        }
-    }
-    return response;*/ 
-    return "not_implemented";
-}
-
 //get version of the firmware
 String WrapSysAt::getVer(){
     return version;
@@ -122,41 +108,12 @@ String WrapSysAt::getVdd(){
     return "not_implemeted";
 }
 
-//get hweui of radio module
-//TO DO
+//reads the preprogrammed EUI node address from the RN2483
+//can be used to set the DevEUI
+//???
 String WrapSysAt::getHweui(){
     //u1_t hweui;
     //hal_spi_read(0x80, &hweui, 8);
     return "not_implemented";
 
-}
-
-String WrapSysAt::getPinDig(char* pinName){
-    /* for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
-        if(String(pinName) == pinNameList[i]){
-            int pin = pinList[i];
-            response = (String)digitalRead(pin);
-        }else{
-            response = "invalid_param";
-        }
-    }
-    return response;   */ 
-
-    return "not_implemented";
-}
-
-
-String WrapSysAt::getPinAna(char* pinName){
-
-    /* for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
-        if(String(pinName) == pinNameList[i]){
-            int pin = pinList[i];
-            response = (String)analogRead(pin);
-        }else{
-            response = "invalid_param";
-        }
-    }
-    return response;  */  
-
-    return "not_implemented";
 }

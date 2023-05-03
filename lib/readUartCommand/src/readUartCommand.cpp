@@ -263,7 +263,7 @@ void ReadUartCommand::parseSysCommand(char* command){
     int len = strlen(word)+1;
     
     if(strcmp(word, "sleep")==0){
-        sendResponse(sysWrapper.sleep());
+        sendResponse(sysWrapper.sleep(atoi(getRemainingPart(command,len))));
     }else if(strcmp(word, "reset")==0){
         sysWrapper.reset();
     }else if(strcmp(word, "erasefw")==0){
@@ -295,14 +295,7 @@ void ReadUartCommand::parseSysSetCommand(char* setCommand){
         get2Params(getRemainingPart(setCommand,len), &pinname, &pinstate);
         u1_t state = atoi(pinstate);
         sendResponse(sysWrapper.setPinDig(pinname, state));
-    }
-    /* else if(strcmp(word, "pinmode")==0){
-        char* pinname;
-        char* pinmode;
-        get2Params(getRemainingPart(setCommand,len), &pinname, &pinmode);
-        sendResponse(sysWrapper.setPinMode(pinname, pinmode));
-    } */
-    else{
+    }else{
         sendResponse("invalid_param");
     }
 }
@@ -322,17 +315,7 @@ void ReadUartCommand::parseSysGetCommand(char* getCommand){
         sendResponse(sysWrapper.getVdd());
     }else if(strcmp(word, "hweui")==0){
         sendResponse(sysWrapper.getHweui());
-    }
-    /* else if(strcmp(word, "pindig")==0){
-        char* pinname;
-        pinname = getRemainingPart(getCommand,len);
-        sendResponse(sysWrapper.getPinDig(pinname));
-    }else if(strcmp(word, "pinana")==0){
-        char* pinname;
-        pinname = getRemainingPart(getCommand,len);
-        sendResponse(sysWrapper.getPinAna(pinname));
-    } */
-    else{
+    }else{
         sendResponse("invalid_param");
     }
 }
