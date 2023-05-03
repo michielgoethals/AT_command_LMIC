@@ -19,7 +19,7 @@ char * ReadUartCommand::getCommand(){
     int index = 0;
 
     while(index < MAX_LENGTH_MESSAGE-1 && Serial.available() > 0){
-        char byte = tolower(Serial.read());
+        char byte = tolower(Serial.read()); //read byte from serial port and convert to lowercase
         if(byte == '\n'){
             buffer[index] = '\n';
             return buffer;

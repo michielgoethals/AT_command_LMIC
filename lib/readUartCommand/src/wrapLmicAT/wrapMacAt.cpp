@@ -135,20 +135,17 @@ String WrapMacAt::reset(u2_t band){
 //Send an uplink packet with the specified data and port (cnf or uncnf)
 String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     u1_t* datatx = (u1_t*)data;
-    int result = 0;
+    u1_t _cnf;
 
     if(paused){
         response = "mac_paused";
     }else if(!joined){
         Serial.println("not_joined");
     }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
-        if(strcmp(cnf, "cnf")==0){
-                result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 1); //do not change datarate as in RN module
-                packetTx=true;
-        }else if(strcmp(cnf, "uncnf")==0){
-                result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, 0); 
-                packetTx=true;
-        }
+        if(strcmp(cnf, "cnf")==0){_cnf = 1;}
+        else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
+        int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
+        packetTx=true;
 
     switch (result){
         case LMIC_ERROR_SUCCESS:
@@ -175,7 +172,7 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
 String WrapMacAt::joinOtaa(){
     if(paused){
         response = "mac_paused";
-    }else if (LMIC.opmode & OP_TXRXPEND){
+    }else if ((LMIC.opmode & OP_TXRXPEND)==0){
         response = "busy"; 
     }else if(!(devEuiSet && appEuiSet && appKeySet)){
         response = "keys_not_init";
@@ -271,9 +268,11 @@ String WrapMacAt::forceEnable(){
 String WrapMacAt::pause(){
     LMIC_shutdown();
     paused = 1;
-    response = "ok";
-    //TODO: calculate time and return it
-
+    if((LMIC.opmode & OP_TXRXPEND)==0){
+        response = "0";
+    }else{
+        response = "4294967295";
+    }
     return response;
 }
 
@@ -537,14 +536,15 @@ String WrapMacAt::setRx2(u1_t dr, u4_t freq){
 String WrapMacAt::setChFreq(u1_t chID, u4_t freq){
     chUpdated = 1;
 
+    response = "ok";
+
     if(freq >= 863000000 && freq <= 870000000){
-        LMIC.dn2Freq = freq; 
+        LMIC.channelFreq[chID] = freq;
     }else{
         response = "invalid_param";
     }
-    LMIC.channelFreq[chID] = freq;
 
-    return "ok";
+    return response;
 }
 
 //set channel duty cycle for a specific channel (0-15)
