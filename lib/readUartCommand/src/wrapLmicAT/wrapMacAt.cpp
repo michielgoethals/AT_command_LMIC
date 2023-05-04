@@ -45,7 +45,7 @@ void WrapMacAt::begin(){
 
 void WrapMacAt::setDefaultParameters(){
     //set default datarate to 5 = DR_SF7
-    LMIC_setDrTxpow(dr, KEEP_TXPOW); //default txpow is 16dBm
+    LMIC_setDrTxpow(DR_SF7, 14); //default txpow is 16dBm
     //set power index 1 = 14 dBm (max)
     setPwridx(pwrIndex); 
     // disable adr
@@ -57,7 +57,7 @@ void WrapMacAt::setDefaultParameters(){
     //set margin to 255
     LMIC.margin = mrgn;
     //set default datarate for second receive window
-    LMIC.dn2Dr = 3;
+    LMIC.dn2Dr = DR_SF9;
 }
 
 //restore lorawan configuration from EEPROM
@@ -140,25 +140,25 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     if(paused){
         response = "mac_paused";
     }else if(!joined){
-        Serial.println("not_joined");
+        response = "not_joined";
     }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
         if(strcmp(cnf, "cnf")==0){_cnf = 1;}
         else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
         int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
         packetTx=true;
 
-    switch (result){
-        case LMIC_ERROR_SUCCESS:
-            response = "ok";
-            break;
-        case LMIC_ERROR_TX_BUSY:
-            response = "busy";
-            break;
-        case LMIC_ERROR_TX_TOO_LARGE:
-            response = "invalid_data_len";
-            break;
-        default:
-            break;
+        switch (result){
+            case LMIC_ERROR_SUCCESS:
+                response = "ok";
+                break;
+            case LMIC_ERROR_TX_BUSY:
+                response = "busy";
+                break;
+            case LMIC_ERROR_TX_TOO_LARGE:
+                response = "invalid_data_len";
+                break;
+            default:
+                break;
     }
 
     }else{
@@ -172,14 +172,15 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
 String WrapMacAt::joinOtaa(){
     if(paused){
         response = "mac_paused";
-    }else if ((LMIC.opmode & OP_TXRXPEND)==0){
+    }else if (LMIC.opmode & OP_TXRXPEND){
         response = "busy"; 
     }else if(!(devEuiSet && appEuiSet && appKeySet)){
         response = "keys_not_init";
     }else{
         otaa = true;
         LMIC_startJoining();
-        
+        response = "ok";
+
         if(joined){
             LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
             char buffer[LORA_EUI_SIZE];
@@ -818,10 +819,10 @@ void onEvent (ev_t ev) {
             Serial.println("EV_BEACON_TRACKED");
             break;
         case EV_JOINING:
-            Serial.println("ok");
+            Serial.println("joining");
             break;
         case EV_JOINED:
-            Serial.println("accepted");
+            Serial.println("EV_JOINED");
             joined = true;
             break;
         case EV_JOIN_FAILED:
@@ -831,6 +832,7 @@ void onEvent (ev_t ev) {
             Serial.println("EV_REJOIN_FAILED");
             break;
         case EV_TXCOMPLETE:
+            Serial.println("EV_TXCOMPLETE");
             if(abp==true){
                 HAL_FLASHEx_DATAEEPROM_Unlock();
 
@@ -849,12 +851,14 @@ void onEvent (ev_t ev) {
             packetTx = false;
             break;
         case EV_TXSTART:
+            Serial.println("EV_TXSTART");
             //packet was forwarded for transmission
             if(joined){
                 Serial.println("ok");
             }
             break;
         case EV_TXCANCELED:
+            Serial.println("EV_TXCANCELED");
             Serial.println("mac_err");
             break;
         case EV_LOST_TSYNC:
@@ -876,6 +880,7 @@ void onEvent (ev_t ev) {
         case EV_RXSTART:
             break;
         case EV_JOIN_TXCOMPLETE:
+            Serial.println("EV_JOIN_TXCOMPLETE");
             Serial.println("denied");
             join_failed = true;
             break;
