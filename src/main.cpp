@@ -7,6 +7,8 @@ osjob_t readAt;
 
 ReadUartCommand reader; 
 
+RTC_HandleTypeDef hrtc;
+
 char * command = nullptr;
 
 extern "C" void SystemClock_Config(void)
@@ -44,25 +46,6 @@ extern "C" void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
-  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
-}
-
-extern "C" void MX_GPIO_Init(void)
-{
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
 }
 
 static void initfunc(osjob_t* j){
@@ -71,8 +54,6 @@ static void initfunc(osjob_t* j){
   HAL_Init();
   /* Configure the system clock */
   SystemClock_Config();
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   //initializes serial communication and mac parameters
   reader.begin();
   //init done
