@@ -7,8 +7,6 @@ osjob_t readAt;
 
 ReadUartCommand reader; 
 
-RTC_HandleTypeDef hrtc;
-
 char * command = nullptr;
 
 extern "C" void SystemClock_Config(void)
@@ -65,7 +63,6 @@ static void readAtfunc(osjob_t* j){
   //parse command
   reader.parseCommand(command);
 }
-
 
 void setup(){
   //initialize run-time environment
