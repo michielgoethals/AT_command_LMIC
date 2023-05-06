@@ -2,10 +2,10 @@
 
 #include "wrapMacAt.h"
 
-// ----------------------------------------
-// Registers Mapping copied from lmic library radio.c
+// -----------------------------------------------------------------------------------
+// Registers Mapping and write opmode functions copied from lmic library radio.c file
 // Registers can be found in the datasheet of the SX1276/RFM95
-// ----------------------------------------
+// -----------------------------------------------------------------------------------
 #define RegFifo                                    0x00
 #define RegOpMode                                  0x01
 #define FSKRegBitrateMsb                           0x02
@@ -137,6 +137,8 @@
 // Constants for radio registers
 #define OPMODE_LORA      0x80
 #define OPMODE_MASK      0x07
+
+// opmode (bit 0-2) 
 #define OPMODE_SLEEP     0x00
 #define OPMODE_STANDBY   0x01
 #define OPMODE_FSTX      0x02
@@ -199,6 +201,7 @@ class WrapRadioAt{
         s1_t getSnr();
     
     private:
+        //functions from LMIC radio.c file
         void writeReg(u1_t addr, u1_t data);
         u1_t readReg(u1_t addr);
         void writeBuf(u1_t addr, xref2u1_t buf, u1_t len);
@@ -208,6 +211,9 @@ class WrapRadioAt{
         void opmode(u1_t mode);
         void opmodeLora();
         void opmodeFSK();
+
+        //own functions
+        bit_t readOpmode();
         float calculateBw(u1_t regBwValue);
 
     //attributes

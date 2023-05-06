@@ -23,7 +23,7 @@ void WrapRadioAt::requestModuleActive(bit_t state) {
     ostime_t const ticks = hal_setModuleActive(state);
 
     if (ticks)
-        hal_waitUntil(os_getTime() + ticks);;
+        hal_waitUntil(os_getTime() + ticks);
 }
 
 void WrapRadioAt::writeOpmode(u1_t mode) {
@@ -47,6 +47,12 @@ void WrapRadioAt::opmodeLora() {
 void WrapRadioAt::opmodeFSK() {
     u1_t u = OPMODE_FSK;
     writeOpmode(u);
+}
+
+bit_t WrapRadioAt::readOpmode(){
+    u1_t opmodeRegValue = readReg(RegOpMode);
+    //get MSB bit 7
+    return (opmodeRegValue >> 7);
 }
 
 float WrapRadioAt::calculateBw(u1_t regBwValue){
@@ -91,14 +97,15 @@ String WrapRadioAt::tx(char* data){
         // write data to fifo register
         writeBuf(RegFifo, (u1_t*)data, strlen(data));
 
-        //check wich mode selected
-        if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_LORA){
+        //check which mode selected
+        //if LoRa
+        if(readOpmode() == 1){
             if(strlen(data) <= 255){
                 opmode(OPMODE_TX);
             }else{
                 response = "invalid_param";
             }
-        }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK){
+        }else if(readOpmode() == 0){
             if(strlen(data) <= 64){
                 opmode(OPMODE_TX);
             }else{
@@ -134,15 +141,25 @@ String WrapRadioAt::cw(char* state){
 //modifies the data shaping applied to FSK transmissions
 String WrapRadioAt::setBt(char* gfBT){
     response = "ok";
-    //default ramp time is 40us
+    //bit 0-3 is ramp time: default is 40us (0x09) = 1001
+    //bit 4 is reserverd = 0
+    //bit 5-6 = 00 = none
+    //bit 5-6 = 01 = 1.0
+    //bit 5-6 = 10 = 0.5
+    //bit 5-6 = 11 = 0.3
+    //bit 7 is unused = 0
     if(strcmp(gfBT, "none") == 0){
+        //0000 1001 = 0x09
         writeReg(RegPaRamp, 0x09);
     }else if(strcmp(gfBT, "1.0") == 0){
-        writeReg(RegPaRamp, 0x1D);
-    }else if(strcmp(gfBT, "0.5") == 0){
+        //0010 1001 = 0x29
         writeReg(RegPaRamp, 0x29);
+    }else if(strcmp(gfBT, "0.5") == 0){
+        //0100 1001 = 0x49
+        writeReg(RegPaRamp, 0x49);
     }else if(strcmp(gfBT, "0.3") == 0){
-        writeReg(RegPaRamp, 0x39);
+        //0110 1001 = 0x69
+        writeReg(RegPaRamp, 0x69);
     }else{
         response = "invalid_param";
     }
@@ -182,17 +199,26 @@ String WrapRadioAt::setFreq(u4_t freq){
 
 //set transmission output power (-3-15)
 String WrapRadioAt::setPwr(s1_t pwrout){
-    u1_t rPaConfig;
-    u1_t rPaDac;
-    u1_t rOcp;
+    //RegPaConfig
+    //bit 7 PaSelect = 1: use PA_BOOST pin max. 20dBm
+    //bit 7 PaSelect = 0: use RFO pin max. 14dBm
+    //bit 6-4 MaxPower: Pmax = 10.8+0.6*MaxPower [dBm]
+    //bit 3-0 OutputPower: Pout = 17-(15-OutputPower) if PaSelect = 1
+    //bit 3-0 OutputPower: Pout = PMax-(15-OutputPower) if PaSelect = 0
+
+    u1_t rPaConfig = 0;
+    u1_t rPaDac = SX127X_PADAC_POWER_NORMAL;
+    u1_t rOcp = SX127X_OCP_MAtoBITS(100);
 
     response = "ok";
 
     if(pwrout >= -3 && pwrout <= 15){
         rPaConfig = pwrout | SX1276_PAC_MAX_POWER_MASK;
+
         writeReg(RegPaConfig, rPaConfig);
         writeReg(RegPaDac, (readReg(RegPaDac) & ~SX127X_PADAC_POWER_MASK) | rPaDac);
         writeReg(RegOcp, rOcp | SX127X_OCP_ENA);
+
     }else{
         response = "invalid_param";
     }
@@ -202,6 +228,19 @@ String WrapRadioAt::setPwr(s1_t pwrout){
 // set spreading factor (sf7 - sf12)
 String WrapRadioAt::setSf(char* spreadingFactor){
     response = "ok";
+
+    //regModemConfig2
+    // bits 7-4 spreading factor
+    // bits 7-4 0x07 = 7 = sf7
+    // bits 7-4 0x08 = 8 = sf8
+    // bits 7-4 0x09 = 9 = sf9
+    // bits 7-4 0x10 = 10 = sf10
+    // bits 7-4 0x11 = 11 = sf11
+    // bits 7-4 0x12 = 12 = sf12
+
+    //clear bits 7-4
+    mc2 &= 0x0F;
+  
     if(strcmp(spreadingFactor, "sf7") == 0){
         mc2 |= SX1272_MC2_SF7;
     }else if(strcmp(spreadingFactor, "sf8") == 0){
@@ -314,9 +353,11 @@ String WrapRadioAt::setPrLen(u2_t preamble){
 //set CRC header type (on, off)
 String WrapRadioAt::setCrc(char* crcHeader){
     response = "ok";
+
     if(strcmp(crcHeader, "on") == 0){
         mc2 |= SX1276_MC2_RX_PAYLOAD_CRCON;
     }else if(strcmp(crcHeader, "off") == 0){
+        //clear bit 2
         mc2 &= ~SX1276_MC2_RX_PAYLOAD_CRCON;
     }else{
         response = "invalid_param";
@@ -329,10 +370,15 @@ String WrapRadioAt::setCrc(char* crcHeader){
 String WrapRadioAt::setIqi(char* iqInvert){
     response = "ok";
 
-    if (iqInvert == "on"){
-        writeReg(LORARegInvertIQ, readReg(LORARegInvertIQ)|(1<<6));
-    }else if (iqInvert == "off"){
-        writeReg(LORARegInvertIQ, readReg(LORARegInvertIQ) & ~(1<<6));
+    //bit 6 = 1: invert I and Q signals in RX path
+    //bit 0 = 1: invert I and Q signals in TX path
+
+    if (strcmp(iqInvert, "on")==0){
+        writeReg(LORARegInvertIQ, (1<<6));
+        writeReg(LORARegInvertIQ, (1<<0));
+    }else if (strcmp(iqInvert, "off")==0){
+        writeReg(LORARegInvertIQ, (0<<6));
+        writeReg(LORARegInvertIQ, (0<<0));
     }else{
         response = "invalid_param";
     }
@@ -342,6 +388,10 @@ String WrapRadioAt::setIqi(char* iqInvert){
 //set coding rate (4/5, 4/6, 4/7, 4/8)
 String WrapRadioAt::setCr(char* codingRate){
     response = "ok";
+
+    //clear bits 3-1
+    mc1 &= 0xF1;
+
     if (strcmp(codingRate, "4/5") == 0){
         mc1 |= SX1276_MC1_CR_4_5;
     }else if(strcmp(codingRate, "4/6") == 0){
@@ -393,6 +443,10 @@ String WrapRadioAt::setSync(char* syncWord){
 // set operating radio bandwith in kHz (125, 250, 500)
 String WrapRadioAt::setBw(u2_t bandWidth){
     response = "ok";
+
+    //clear bits 7-4
+    mc1 &= 0x0F;
+
     if(bandWidth == 125){
         mc1 |= SX1276_MC1_BW_125;
         //set bandwidth to 125 kHz
@@ -413,79 +467,72 @@ String WrapRadioAt::setBw(u2_t bandWidth){
 String WrapRadioAt::getBt(){
     u1_t bt = readReg(RegPaRamp);
     String btString;
-
-    if((bt & 0x09)==0){
+    
+    if(bt == 0x09){
         btString = "none";
-    }else if((bt & 0x1D)==0){
+    }else if(bt == 0x29){
         btString = "1.0";
-    }else if((bt & 0X29)==0){
+    }else if(bt == 0X49){
         btString = "0.5";
-    }else if((bt & 0x39)==0){
+    }else if(bt == 0x69){
         btString = "0.3";
     }else{
         btString = "no_valid_bt_found";
     }
+
     return btString;
 }
 
 //get current operation mode of the radio lora of fsk
 String WrapRadioAt::getMod(){
     String mode;
-    if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_LORA){
+    if(readOpmode() == 1){
         mode = "lora";
-    }else if((readReg(RegOpMode) & ~OPMODE_MASK) == OPMODE_FSK){
+    }else if(readOpmode() == 0){
         mode = "fsk";
     }else{
         mode = "no_valid_mode_found";
     }
 
     return mode;
-
 }
 
 // get current frequency of the radio
 u4_t WrapRadioAt::getFreq(){
-    u4_t freq = 0;
-    u1_t freq3 = readReg(RegFrfMsb);
-    u1_t freq2 = readReg(RegFrfMid);
-    u1_t freq1 = readReg(RegFrfLsb);
+    u4_t freq24_bit = (readReg(RegFrfMsb) << 16) | (readReg(RegFrfMid) << 8) | readReg(RegFrfLsb);
 
-    freq = (freq3 << 16) | (freq2 << 8) | freq1;
+    u4_t freq = freq24_bit * 32000000 / 2^19;
 
     return freq;
 }
 
 //get current power level settings of the radio
 s1_t WrapRadioAt::getPwr(){
-    s1_t pwr = 0;
-    u1_t pwrReg = readReg(RegPaConfig);
-    u1_t pwrLevel = readReg(RegPaDac);
 
-    if((pwrReg & 0x80)==0){
-        pwr = pwrLevel;
-    }else{
-        pwr = pwrReg & 0x0F;
-    }
+    u1_t pwrReg = readReg(RegPaConfig);
+
+    s1_t pwr = pwrReg & 0x0F;
+    
     return pwr;
 }
 
 //get current spreading factor
 String WrapRadioAt::getSf(){
-    u2_t config2 = readReg(LORARegModemConfig2);
+    u2_t sfConfig = readReg(LORARegModemConfig2) & 0xF0;
 
     String sf;
 
-    if((config2 & SX1272_MC2_SF7)==0){
+    if(sfConfig == SX1272_MC2_SF7){
         sf = "7";
-    }else if((config2 & SX1272_MC2_SF8)==0){
+    }else if(sfConfig == SX1272_MC2_SF8){
         sf = "8";
-    }else if((config2 & SX1272_MC2_SF9)==0){
+    }else if(sfConfig == SX1272_MC2_SF9){
         sf = "9";
-    }else if((config2 & SX1272_MC2_SF10)==0){
+    }else if(sfConfig == SX1272_MC2_SF10){
         sf = "10";
-    }else if((config2 & SX1272_MC2_SF11)==0){
+    }else if(sfConfig == SX1272_MC2_SF11){
         sf = "11";
-    }else if((config2 & SX1272_MC2_SF12)==0){
+    }else if(sfConfig == SX1272_MC2_SF12){
         sf = "12";
     }else{
         sf = "no_valid_sf";
@@ -539,10 +586,10 @@ u2_t WrapRadioAt::getPrLen(){
 
 // get current CRC header type (on, off)
 String WrapRadioAt::getCrc(){
-    u1_t config2 = readReg(LORARegModemConfig2);
+    u1_t crcConfig = readReg(LORARegModemConfig2) & 0x04;
     String crc;
 
-    if ((config2 & SX1276_MC2_RX_PAYLOAD_CRCON)==0){
+    if (crcConfig==SX1276_MC2_RX_PAYLOAD_CRCON){
         crc = "on";
     }else{
         crc = "off";
@@ -552,28 +599,30 @@ String WrapRadioAt::getCrc(){
 
 //get current IQ inversion (on, off)
 String WrapRadioAt::getIqi(){
-    u1_t iqi = readReg(LORARegInvertIQ);
+    //get bit 6 and 0 of register 0x33
+    u1_t iqi = readReg(LORARegInvertIQ) & 0x41;
 
-    if(iqi == 0){
-        response =  "off";
+    if(iqi == 0x41){
+        response =  "on";
     }else{
-        response = "on";
+        response = "off";
     }
+    
     return response;
 }
 
 //get current coding rate (4/5, 4/6, 4/7, 4/8)
 String WrapRadioAt::getCr(){
-    u1_t config1 = readReg(LORARegModemConfig1);
+    u1_t crConfig = readReg(LORARegModemConfig1) & 0x0E;
     String cr;
 
-    if ((config1 & SX1276_MC1_CR_4_5)==0){
+    if (crConfig == SX1276_MC1_CR_4_5){
         cr = "4/5";
-    }else if((config1 & SX1276_MC1_CR_4_6)==0){
+    }else if(crConfig == SX1276_MC1_CR_4_6){
         cr = "4/6";
-    }else if((config1 & SX1276_MC1_CR_4_7)==0){
+    }else if(crConfig == SX1276_MC1_CR_4_7){
         cr = "4/7";
-    }else if((config1 & SX1276_MC1_CR_4_8)==0){
+    }else if(crConfig == SX1276_MC1_CR_4_8){
         cr = "4/8";
     }else{
         cr = "not_found";
@@ -588,14 +637,14 @@ u4_t WrapRadioAt::getWdt(){
 
 // get bandwidth of the radio
 u2_t WrapRadioAt::getBw(){
-    u1_t config1 = readReg(LORARegModemConfig1);
+    u1_t bwConfig = readReg(LORARegModemConfig1) & 0xF0;
     u2_t bw;
 
-    if ((config1 & SX1276_MC1_BW_125) == 0){
+    if (bwConfig == SX1276_MC1_BW_125){
         bw = 125;
-    }else if((config1 & SX1276_MC1_BW_250)==0){
+    }else if(bwConfig == SX1276_MC1_BW_250){
         bw = 250;
-    }else if((config1 & SX1276_MC1_BW_500)==0){
+    }else if(bwConfig == SX1276_MC1_BW_500){
         bw = 500;
     }else{
         bw = 0;
