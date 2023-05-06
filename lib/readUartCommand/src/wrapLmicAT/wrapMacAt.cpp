@@ -212,6 +212,7 @@ String WrapMacAt::joinABP(){
         
         response = "ok\raccepted";
         
+        //restore frame counters
         LMIC.seqnoDn = *(u4_t*)EEPROM_START_ADDR_FCNTDOWN;
         LMIC.seqnoUp = *(u4_t*)EEPROM_START_ADDR_FCNTUP;
     }
