@@ -1,6 +1,7 @@
 #include "readUartCommand.h"
 
-#define BAUDRATE 19200
+#define BAUDRATE 57600
+#define UART USART2
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_RX_Pin GPIO_PIN_3
 
@@ -8,6 +9,7 @@ osjob_t initjob;
 osjob_t readAt;
 
 RTC_HandleTypeDef hrtc; 
+
 ReadUartCommand reader; 
 
 char * command = nullptr;
@@ -66,23 +68,6 @@ extern "C" void SystemClock_Config(void)
   }
 }
 
-extern "C" void GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_USART2_CLK_ENABLE();
-
-  GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF4_USART2;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-}
-
 extern "C" void RTC_Init(void)
 {
   hrtc.Instance = RTC;
@@ -106,19 +91,25 @@ extern "C" void RTC_Init(void)
   HAL_NVIC_EnableIRQ(RTC_IRQn);
 }
 
+//Interrupt handlers
+extern "C" void RTC_IRQHandler(void){HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);}
+
+extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
+  //disable sleep on exit
+  HAL_PWR_DisableSleepOnExit();
+}
+
 static void initfunc(osjob_t* j){
    
   //Reset of all peripherals, Initializes the Flash interface and the Systick.
   HAL_Init();
   //Configure the system clock
   SystemClock_Config();
-  //init Uart pins and enable clock
-  GPIO_Init();
   //init RTC
   RTC_Init();
   //initializes serial communication and mac parameters
-  reader.begin();
-  //init done
+  //pass huart, rtc handler to reader and use default baud
+  reader.begin(BAUDRATE, &hrtc);
 }
 
 static void readAtfunc(osjob_t* j){
@@ -128,22 +119,21 @@ static void readAtfunc(osjob_t* j){
   reader.parseCommand(command);
 }
 
-void setup(){
+void setup(void){
   //initialize run-time environment
   os_init();
-  //
+  //run initfunc
   os_setCallback(&initjob, initfunc);
 }
 
-void loop(){
-  //schedule a read command
-  //give time to fill buffer with full command and then read it
-  //since we dont know the length of the command
-  os_setCallback(&readAt, readAtfunc);
-  HAL_Delay(100);
-
+void loop(void){
+  //schedule a read command if there is data available
+  if(Serial.available()>0){
+    //give time to fill buffer with full command and then read it
+    //since we dont know the length of the command
+    delay(100);
+    os_setCallback(&readAt, readAtfunc);
+  }
   //execute scheduled jobs and events
   os_runloop_once();
 }
-
-
