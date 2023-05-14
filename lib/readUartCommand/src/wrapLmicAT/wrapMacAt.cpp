@@ -17,8 +17,6 @@ static u4_t _devaddr;
 static u4_t _netid;
 
 bool joined = false;
-bool packetTx = false;
-bool join_failed = false;
 bool otaa = false;
 bool abp = false;
 
@@ -56,8 +54,6 @@ void WrapMacAt::setDefaultParameters(){
     LMIC_setLinkCheckMode(linkchk);
     //set margin to 255
     LMIC.margin = mrgn;
-    //set default datarate for second receive window
-    LMIC.dn2Dr = DR_SF9;
 }
 
 //restore lorawan configuration from EEPROM
@@ -78,7 +74,6 @@ void WrapMacAt::restoreConfiguration(){
         sprintf(appeui+i*2, "%02X", *((char*)EEPROM_START_ADDR_APPEUI+i));
     }
     setAppEui(appeui);
-
 
     //restore appkey
     char appkey[LORA_KEY_SIZE*2];
@@ -145,7 +140,6 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
         if(strcmp(cnf, "cnf")==0){_cnf = 1;}
         else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
         int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
-        packetTx=true;
 
         switch (result){
             case LMIC_ERROR_SUCCESS:
@@ -178,6 +172,8 @@ String WrapMacAt::joinOtaa(){
         response = "keys_not_init";
     }else{
         otaa = true;
+
+        //set RX2 datarate to SF12 normal???
         LMIC_startJoining();
         response = "ok";
 
@@ -189,8 +185,6 @@ String WrapMacAt::joinOtaa(){
 
             LMIC_setLinkCheckMode(linkchk);
         }
-
-        join_failed = false;
     }
 
     return response;
@@ -808,32 +802,30 @@ String WrapMacAt::getChStatus(u1_t chID){
 void onEvent (ev_t ev) {
     switch(ev) {
         case EV_SCAN_TIMEOUT:
-            Serial.println("EV_SCAN_TIMEOUT");
+            //Serial.println("EV_SCAN_TIMEOUT");
             break;
         case EV_BEACON_FOUND:
-            Serial.println("EV_BEACON_FOUND");
+            //Serial.println("EV_BEACON_FOUND");
             break;
         case EV_BEACON_MISSED:
-            Serial.println("EV_BEACON_MISSED");
+            //Serial.println("EV_BEACON_MISSED");
             break;
         case EV_BEACON_TRACKED:
-            Serial.println("EV_BEACON_TRACKED");
+            //Serial.println("EV_BEACON_TRACKED");
             break;
         case EV_JOINING:
-            Serial.println("joining");
             break;
         case EV_JOINED:
-            Serial.println("EV_JOINED");
+            //Serial.println("accepted");
             joined = true;
             break;
         case EV_JOIN_FAILED:
-            Serial.println("EV_JOIN_FAILED");
+            //Serial.println("EV_JOIN_FAILED");
             break;
         case EV_REJOIN_FAILED:
-            Serial.println("EV_REJOIN_FAILED");
+            //Serial.println("EV_REJOIN_FAILED");
             break;
         case EV_TXCOMPLETE:
-            Serial.println("EV_TXCOMPLETE");
             if(abp==true){
                 HAL_FLASHEx_DATAEEPROM_Unlock();
 
@@ -844,50 +836,42 @@ void onEvent (ev_t ev) {
             }
 
             if (LMIC.txrxFlags & TXRX_ACK){ //if server ack the message
-                Serial.print("mac_rx ");
-                Serial.print(String(LMIC.dataBeg-1)); //port of received ack
+                //Serial.print("mac_rx ");
+                //Serial.print(String(LMIC.dataBeg-1)); //port of received ack
             }else{
-                Serial.println("mac_tx_ok");
+                //Serial.println("mac_tx_ok");
             }
-            packetTx = false;
             break;
         case EV_TXSTART:
-            Serial.println("EV_TXSTART");
-            //packet was forwarded for transmission
-            if(joined){
-                Serial.println("ok");
-            }
             break;
         case EV_TXCANCELED:
-            Serial.println("EV_TXCANCELED");
-            Serial.println("mac_err");
+            //Serial.println("EV_TXCANCELED");
+            //Serial.println("mac_err");
             break;
         case EV_LOST_TSYNC:
-            Serial.println("EV_LOST_TSYNC");
+            //Serial.println("EV_LOST_TSYNC");
             break;
         case EV_RESET:
-            Serial.println(F("EV_RESET"));
+            //Serial.println(F("EV_RESET"));
             break;
         case EV_RXCOMPLETE:
             // data received in ping slot
-            Serial.println("EV_RXCOMPLETE");
+            //Serial.println("EV_RXCOMPLETE");
             break;
         case EV_LINK_DEAD:
-            Serial.println("EV_LINK_DEAD");
+            //Serial.println("EV_LINK_DEAD");
             break;
         case EV_LINK_ALIVE:
-            Serial.println("EV_LINK_ALIVE");
+            //Serial.println("EV_LINK_ALIVE");
             break;
         case EV_RXSTART:
             break;
         case EV_JOIN_TXCOMPLETE:
-            Serial.println("EV_JOIN_TXCOMPLETE");
-            Serial.println("denied");
-            join_failed = true;
+            //Serial.println("denied");
             break;
         default:
-            Serial.print("Unknown event: ");
-            Serial.println((unsigned) ev);
+            //Serial.print("Unknown event: ");
+            //Serial.println((unsigned) ev);
             break;
     }
 }
