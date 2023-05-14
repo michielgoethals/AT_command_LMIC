@@ -1,50 +1,21 @@
 #include "readUartCommand.h"
 
-void ReadUartCommand::initUart(int baud){
-    huart.Instance = UART;
-    huart.Init.BaudRate = baud;
-    huart.Init.WordLength = UART_WORDLENGTH_8B;
-    huart.Init.StopBits = UART_STOPBITS_1;
-    huart.Init.Parity = UART_PARITY_NONE;
-    huart.Init.Mode = UART_MODE_TX_RX;
-    huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-
-    //enable auto baud rate detection on 0x55 frame
-    huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
-    huart.AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
-    huart.AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ON0X55FRAME;
-
-    if (HAL_UART_Init(&huart) != HAL_OK){
-        Error_Handler();
-    }
-
-    /* USART2 interrupt Init */
-    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(USART2_IRQn);
-}
-
-void ReadUartCommand::begin(){	
-    begin(DEFAULT_BAUD);
-}
-
-void ReadUartCommand::begin(int baudrate){
-    initUart(baudrate);
-    //Serial.begin(baudrate);
+void ReadUartCommand::begin(int baudrate, RTC_HandleTypeDef *hrtc1){
+    hrtc = *hrtc1;
+    
+    Serial.begin(baudrate);
     sendResponse(startupMessage);
     //reset LMIC library and restore lorawan configuration from eeprom
     macWrapper.begin();
+    sysWrapper.begin(&hrtc);
 }
 
 char * ReadUartCommand::getCommand(){
     static char buffer[MAX_LENGTH_MESSAGE];
     int index = 0;
 
-    uint8_t byte;
-
-    while(index < MAX_LENGTH_MESSAGE-1 && HAL_UART_Receive(&huart, &byte, 1, HAL_MAX_DELAY)==HAL_OK){
-        byte = tolower(byte); //read byte from serial port and convert to lowercase
+    while(index < MAX_LENGTH_MESSAGE-1 && Serial.available() > 0){
+        char byte = tolower(Serial.read()); //read byte from serial port and convert to lowercase
         if(byte == '\n'){
             buffer[index] = '\n';
             return buffer;
@@ -55,17 +26,6 @@ char * ReadUartCommand::getCommand(){
     } 
 
     return nullptr; 
-}
-
-bool ReadUartCommand::getState(){
-    bool state = false;
-    uint8_t byte;
-
-    if(HAL_UART_Receive(&huart, &byte, 1, HAL_MAX_DELAY)==HAL_OK){
-        state = true;
-    }
-    
-    return state;
 }
 
 void ReadUartCommand::parseCommand(char* command){
@@ -461,24 +421,26 @@ void ReadUartCommand::parseRadioGetCommand(char* getCommand){
 }
 
 void ReadUartCommand::sendResponse(String response){
-    //Serial.println(response)
+    Serial.println(response);
+    /* 
     response = response + "\r\n";
     HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
-}
+    */
+} 
 
 void ReadUartCommand::sendResponse(int response){
     sendResponse((String)response);
 }
 
 void ReadUartCommand::sendResponseHex(int response){
-    //Serial.println(response, HEX)
+    Serial.println(response, HEX);
     
-    //int to hex string
-    char hexResult[sizeof(response)*2+1];   
+    
+    /* char hexResult[sizeof(response)*2+1];   
 
     sprintf(hexResult, "%02X", response);
 
-    HAL_UART_Transmit(&huart, (uint8_t*)hexResult, strlen(hexResult), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart, (uint8_t*)hexResult, strlen(hexResult), HAL_MAX_DELAY); */
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
