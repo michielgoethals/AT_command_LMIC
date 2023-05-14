@@ -7,7 +7,7 @@ void ReadUartCommand::begin(int baudrate, UART_HandleTypeDef *uart, RTC_HandleTy
     //Serial.begin(baudrate);
     sendResponse(startupMessage);
     //reset LMIC library and restore lorawan configuration from eeprom
-    macWrapper.begin();
+    macWrapper.begin(&huart);
     sysWrapper.begin(&hrtc);
 }
 

@@ -40,7 +40,7 @@
 class WrapMacAt{
     //set default parameters
     public:
-        void begin();
+        void begin(UART_HandleTypeDef *uart);
         void setDefaultParameters();
         void restoreConfiguration();
     
@@ -157,7 +157,8 @@ class WrapMacAt{
         u2_t status = 0b0000000000000000;
 
     //other attributes
-    private:    
+    private:
+        UART_HandleTypeDef huart;    
         char tempStr[3] = {0x00, 0x00, 0x00};
         String response;
 };

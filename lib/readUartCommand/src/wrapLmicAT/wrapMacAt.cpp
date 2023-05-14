@@ -35,7 +35,8 @@ void os_getDevKey (u1_t* buf) {
 }
 
 //resets LMIC state and sets up the default values    
-void WrapMacAt::begin(){
+void WrapMacAt::begin(UART_HandleTypeDef *uart){
+    huart = *uart;
     LMIC_reset();
     setDefaultParameters();
     restoreConfiguration();
@@ -870,8 +871,7 @@ void onEvent (ev_t ev) {
             //Serial.println("denied");
             break;
         default:
-            //Serial.print("Unknown event: ");
-            //Serial.println((unsigned) ev);
+            //Serial.println("Unknown event:");
             break;
     }
 }
