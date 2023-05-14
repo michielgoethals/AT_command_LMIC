@@ -9,16 +9,17 @@
 
 #define MAX_LENGTH_MESSAGE 127
 #define DEFAULT_BAUD 57600
+#define UART USART2
 
 using namespace std;
 
 class ReadUartCommand{
     //general
     public:
-        ReadUartCommand();
         void begin(int baudrate);
         void begin();
         char * getCommand();
+        bool getState();
         void parseCommand(char* command);
         void sendResponse(String response);
         void sendResponse(int response);
@@ -50,10 +51,13 @@ class ReadUartCommand{
         char * getRemainingPart(char* arr, int offset);
         void get2Params(char* params, char** param1, char** param2);
         void get3Params(char* params, char** param1, char** param2, char** param3);
+        void initUart(int baud);
 
-    //attributes
+    
+    //private attributes
     private:
         String startupMessage = "STM32 started";
+        UART_HandleTypeDef huart;
 
         char * command = nullptr;
         WrapMacAt macWrapper;
