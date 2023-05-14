@@ -95,12 +95,10 @@ extern "C" void RTC_Init(void)
 extern "C" void RTC_IRQHandler(void){HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);}
 
 extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
-  //disable sleep on exit
   HAL_PWR_DisableSleepOnExit();
 }
 
 static void initfunc(osjob_t* j){
-   
   //Reset of all peripherals, Initializes the Flash interface and the Systick.
   HAL_Init();
   //Configure the system clock
@@ -108,7 +106,6 @@ static void initfunc(osjob_t* j){
   //init RTC
   RTC_Init();
   //initializes serial communication and mac parameters
-  //pass huart, rtc handler to reader and use default baud
   reader.begin(BAUDRATE, &hrtc);
 }
 
