@@ -1,9 +1,28 @@
 #include "wrapSysAt.h"
 
+void WrapSysAt::begin(RTC_HandleTypeDef *rtc){
+    hrtc = *rtc;
+}
+
 //put system in sleep for a finite number of milliseconds
 String WrapSysAt::sleep(u4_t ms){
-    response = "not_implemented";
+    response = "ok";
 
+    //Wake-up Time Base = 16 /(32KHz) = 0.0005 seconds = 0.5 millisecons
+    //==> WakeUpCounter = #ms/0.5ms
+
+    HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, ms/0.5, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+
+    HAL_SuspendTick();
+
+    HAL_PWR_EnableSleepOnExit ();
+
+    //Enter Sleep Mode , wake up is done once User push-button is pressed
+    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+
+    //Resume Tick interrupt if disabled prior to sleep mode entry
+    HAL_ResumeTick();
+    
     return response;
 }
 

@@ -10,6 +10,7 @@
 class WrapSysAt{
     //general commands
     public:
+        void begin(RTC_HandleTypeDef *rtc);
         String sleep(u4_t ms);
         void reset();
         void eraseFW();
@@ -36,6 +37,8 @@ class WrapSysAt{
     private:
         String version = "0.0.1";
         String response;
+
+        RTC_HandleTypeDef hrtc;
 
         char* defaultEUI = "0000000000000000";
         char* defaultKey = "00000000000000000000000000000000";
