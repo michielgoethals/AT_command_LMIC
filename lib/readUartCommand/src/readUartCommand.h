@@ -14,7 +14,7 @@ using namespace std;
 class ReadUartCommand{
     //general
     public:
-        void begin(int baudrate, RTC_HandleTypeDef *hrtc);
+        void begin(int baudrate, UART_HandleTypeDef *uart, RTC_HandleTypeDef *rtc);
         char* getCommand();
         void parseCommand(char* command);
         void sendResponse(String response);
@@ -55,6 +55,7 @@ class ReadUartCommand{
         char * command = nullptr;
 
         RTC_HandleTypeDef hrtc;
+        UART_HandleTypeDef huart;
 
         WrapMacAt macWrapper;
         WrapSysAt sysWrapper;

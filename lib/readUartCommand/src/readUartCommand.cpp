@@ -1,9 +1,10 @@
 #include "readUartCommand.h"
 
-void ReadUartCommand::begin(int baudrate, RTC_HandleTypeDef *hrtc1){
-    hrtc = *hrtc1;
+void ReadUartCommand::begin(int baudrate, UART_HandleTypeDef *uart, RTC_HandleTypeDef *rtc){
+    huart = *uart;
+    hrtc = *rtc;
     
-    Serial.begin(baudrate);
+    //Serial.begin(baudrate);
     sendResponse(startupMessage);
     //reset LMIC library and restore lorawan configuration from eeprom
     macWrapper.begin();
@@ -11,7 +12,7 @@ void ReadUartCommand::begin(int baudrate, RTC_HandleTypeDef *hrtc1){
 }
 
 char * ReadUartCommand::getCommand(){
-    static char buffer[MAX_LENGTH_MESSAGE];
+    /* static char buffer[MAX_LENGTH_MESSAGE];
     int index = 0;
 
     while(index < MAX_LENGTH_MESSAGE-1 && Serial.available() > 0){
@@ -24,7 +25,7 @@ char * ReadUartCommand::getCommand(){
             index++;
         }
     } 
-
+ */
     return nullptr; 
 }
 
@@ -421,11 +422,10 @@ void ReadUartCommand::parseRadioGetCommand(char* getCommand){
 }
 
 void ReadUartCommand::sendResponse(String response){
-    Serial.println(response);
-    /* 
+    //Serial.println(response);
+    
     response = response + "\r\n";
     HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
-    */
 } 
 
 void ReadUartCommand::sendResponse(int response){
@@ -433,14 +433,13 @@ void ReadUartCommand::sendResponse(int response){
 }
 
 void ReadUartCommand::sendResponseHex(int response){
-    Serial.println(response, HEX);
+    //Serial.println(response, HEX);
     
-    
-    /* char hexResult[sizeof(response)*2+1];   
+    char hexResult[sizeof(response)*2+1];   
 
     sprintf(hexResult, "%02X", response);
 
-    HAL_UART_Transmit(&huart, (uint8_t*)hexResult, strlen(hexResult), HAL_MAX_DELAY); */
+    HAL_UART_Transmit(&huart, (uint8_t*)hexResult, strlen(hexResult), HAL_MAX_DELAY);
 }
 
 char* ReadUartCommand::getRemainingPart(char* arr, int offset){
