@@ -107,7 +107,7 @@ void WrapMacAt::restoreConfiguration(){
     //RESET CHANNELS
 }
 
-//reset the MAC layer to a specific band (433MHz not implemented or 868MHz)
+//reset the MAC layer to a specific band (433MHz not implemented)
 String WrapMacAt::reset(u2_t band){
     LMIC_unjoin();
     joined = false;
@@ -140,27 +140,65 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
         if(strcmp(cnf, "cnf")==0){_cnf = 1;}
         else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
-        int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
+        lmic_tx_error_t result = LMIC_sendWithCallback_strict(portno, datatx, sizeof(data)-1, _cnf, [](void* pUserData, int fSuccess) {
+            static_cast<WrapMacAt*>(pUserData)->eventTx(fSuccess);
+        }, this);
+
+        //int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
 
         switch (result){
             case LMIC_ERROR_SUCCESS:
+                //No error occurred, EV_TXCOMPLETE will be posted.
                 response = "ok";
                 break;
             case LMIC_ERROR_TX_BUSY:
+                //The LMIC was busy sending another message. This message was not sent. 
+                //EV_TXCOMPLETE will not be posted for this message.
                 response = "busy";
                 break;
             case LMIC_ERROR_TX_TOO_LARGE:
+                //The queued message is too large for the any data rate for this region. 
+                //This message was not sent. EV_TXCOMPLETE will not be posted for this message
                 response = "invalid_data_len";
                 break;
+            case LMIC_ERROR_TX_NOT_FEASIBLE:
+                break;
+                //The queued message is not feasible for the current datarate. 
+                //This message was not sent. EV_TXCOMPLETE will notbe posted for this message.
             default:
                 break;
-    }
-
+        }
     }else{
         response = "invalid_param";
     }
-
+    
     return response;
+}
+
+void WrapMacAt::eventTx(int fsucces){
+    if(fsucces == 0){
+        //transmission not succesfull
+        response = "mac_err";
+    }else{
+        //transmission succesfull
+        if (LMIC.dataLen != 0) {
+            response = "mac_rx ";
+        // Data was received. Extract port number if any.
+            u1_t bPort = 0;
+            if (LMIC.txrxFlags & TXRX_PORT)
+                bPort = LMIC.frame[LMIC.dataBeg - 1];
+                // Call user-supplied function with port #, pMessage, nMessage
+                response += (String)bPort +" " + (String)*LMIC.frame;
+
+                //receiveMessage(bPort, LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
+        }else{
+            response = "mac_tx_ok";
+        }
+
+        response += "\r\n";
+        HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
+        
+    }
 }
 
 //join the network with OTAA
@@ -178,6 +216,10 @@ String WrapMacAt::joinOtaa(){
         LMIC_startJoining();
         response = "ok";
 
+        LMIC_registerEventCb([](void* pUserData, ev_t ev) {
+            static_cast<WrapMacAt*>(pUserData)->eventJoin(ev);
+        }, this);
+
         if(joined){
             LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
             char buffer[LORA_EUI_SIZE];
@@ -189,6 +231,16 @@ String WrapMacAt::joinOtaa(){
     }
 
     return response;
+}
+
+void WrapMacAt::eventJoin(ev_t ev) {
+    String response;
+    if (ev == EV_JOINED) {
+        response = "accepted\r\n";
+    }else if(ev == EV_JOIN_TXCOMPLETE){
+        response = "denied\r\n";
+    }
+    HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
 }
 
 //setup ABP session
@@ -492,7 +544,9 @@ String WrapMacAt::setLinkChk(u2_t sec){
     }else{
         linkchk = 1;
         LMIC_setLinkCheckMode(1);
-        LMIC.adrAckReq = sec;
+        //set timer to generate interupt after x seconds
+        //if intterupt of timer set LMIC.adrAckReq to 0
+        //LMIC.adrAckReq=0 
     }
     return "ok";
 }
@@ -536,7 +590,7 @@ String WrapMacAt::setChFreq(u1_t chID, u4_t freq){
     response = "ok";
 
     if(freq >= 863000000 && freq <= 870000000){
-        LMIC.channelFreq[chID] = freq;
+        LMIC.channelFreq[chID] = freq+1;
     }else{
         response = "invalid_param";
     }
@@ -754,7 +808,8 @@ u2_t WrapMacAt::getSatus(){
 
 //Get channel frequency for given channel ID (0-15)
 u4_t WrapMacAt::getChFreq(u1_t chID){
-    return LMIC.channelFreq[chID];
+    //for some reason the channel frequency is stored +1
+    return LMIC.channelFreq[chID]-1;
 }
 
 //Get channel duty cycle for given channel ID (0-15)
@@ -801,32 +856,35 @@ String WrapMacAt::getChStatus(u1_t chID){
 }
 
 void onEvent (ev_t ev) {
+    String event;
     switch(ev) {
         case EV_SCAN_TIMEOUT:
-            //Serial.println("EV_SCAN_TIMEOUT");
+            event = "EV_SCAN_TIMEOUT";
             break;
         case EV_BEACON_FOUND:
-            //Serial.println("EV_BEACON_FOUND");
+            event = "EV_BEACON_FOUND";
             break;
         case EV_BEACON_MISSED:
-            //Serial.println("EV_BEACON_MISSED");
+            event = "EV_BEACON_MISSED";
             break;
         case EV_BEACON_TRACKED:
-            //Serial.println("EV_BEACON_TRACKED");
+            event = "EV_BEACON_TRACKED";
             break;
         case EV_JOINING:
+            event = "EV_JOINING";
             break;
         case EV_JOINED:
-            //Serial.println("accepted");
+            event = "accepted";
             joined = true;
             break;
         case EV_JOIN_FAILED:
-            //Serial.println("EV_JOIN_FAILED");
+            event = "EV_JOIN_FAILED";
             break;
         case EV_REJOIN_FAILED:
-            //Serial.println("EV_REJOIN_FAILED");
+            event = "EV_REJOIN_FAILED";
             break;
         case EV_TXCOMPLETE:
+            event = "EV_TXCOMPLETE";
             if(abp==true){
                 HAL_FLASHEx_DATAEEPROM_Unlock();
 
@@ -837,41 +895,46 @@ void onEvent (ev_t ev) {
             }
 
             if (LMIC.txrxFlags & TXRX_ACK){ //if server ack the message
-                //Serial.print("mac_rx ");
-                //Serial.print(String(LMIC.dataBeg-1)); //port of received ack
+                event = "mac_ rx";
+                event += String(LMIC.dataBeg-1); //port of received ack
             }else{
-                //Serial.println("mac_tx_ok");
+                event = "mac_tx_ok";
             }
             break;
         case EV_TXSTART:
+            event = "EV_TXSTART";
             break;
         case EV_TXCANCELED:
-            //Serial.println("EV_TXCANCELED");
-            //Serial.println("mac_err");
+            event = "mac_err";
             break;
         case EV_LOST_TSYNC:
-            //Serial.println("EV_LOST_TSYNC");
+            event = "EV_LOST_TSYNC";
             break;
         case EV_RESET:
-            //Serial.println(F("EV_RESET"));
+            event = "EV_RESET";
             break;
         case EV_RXCOMPLETE:
             // data received in ping slot
-            //Serial.println("EV_RXCOMPLETE");
+            event = "EV_RXCOMPLETE";
             break;
         case EV_LINK_DEAD:
-            //Serial.println("EV_LINK_DEAD");
+            event = "EV_LINK_DEAD";
             break;
         case EV_LINK_ALIVE:
-            //Serial.println("EV_LINK_ALIVE");
+            event = "EV_LINK_ALIVE";
             break;
         case EV_RXSTART:
+            /* do not print anything -- it wrecks timing */
             break;
         case EV_JOIN_TXCOMPLETE:
-            //Serial.println("denied");
+            event = "EV_JOIN_TXCOMPLETE";
             break;
         default:
-            //Serial.println("Unknown event:");
+            event = "Unknown event:";
             break;
+
+        event += "\r\n";
     }
 }
+
+
