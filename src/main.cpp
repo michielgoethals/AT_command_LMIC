@@ -16,6 +16,8 @@ ReadUartCommand reader;
 uint8_t uart_buffer[128] = {0};
 uint8_t buffer_index = 0;
 
+bool commandAvailable = false;
+
 extern "C" void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -115,7 +117,7 @@ extern "C" void RTC_Init(void)
 
 extern "C" void UART_Init(void)
 {
-  huart2.Instance = USART2;
+  huart2.Instance = UART;
   huart2.Init.BaudRate = 57600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
@@ -137,7 +139,7 @@ extern "C" void UART_Init(void)
     Error_Handler();
   }
 
-   /* USART2 interrupt Init */
+  /* USART2 interrupt Init */
   HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(USART2_IRQn);
 }
@@ -148,14 +150,16 @@ extern "C" void USART2_IRQHandler(void){HAL_UART_IRQHandler(&huart2);}
 
 //Interupt implementations
 extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
-  HAL_PWR_DisableSleepOnExit();
+  char str[] = "RTC Interrupt generated\r\n";
+	HAL_UART_Transmit(&huart2, (uint8_t *) str, strlen (str), HAL_MAX_DELAY);
+  //HAL_PWR_DisableSleepOnExit();
 }
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 { 
   if(uart_buffer[buffer_index] == '\n'){
     uart_buffer[buffer_index] = '\0';
-    reader.parseCommand((char*)uart_buffer);
+    commandAvailable = true;
     buffer_index = 0;
   }else{
     buffer_index++;
@@ -180,14 +184,22 @@ static void initfunc(osjob_t* j){
   HAL_UART_Receive_IT(&huart2, (uint8_t *)&uart_buffer[buffer_index], 1);
 }
 
+static void parseCommand(osjob_t* j){
+  reader.parseCommand((char*)uart_buffer);
+}
+
 void setup(void){
   //initialize run-time environment
   os_init();
-  //run initfunc
+  //run init functions
   os_setCallback(&initjob, initfunc);
 }
 
 void loop(void){
+  if(commandAvailable){
+    os_setCallback(&readAt, parseCommand);
+    commandAvailable = false;
+  }
   //execute scheduled jobs and events
   os_runloop_once();
 }
