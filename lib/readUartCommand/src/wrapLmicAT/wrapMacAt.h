@@ -109,7 +109,11 @@ class WrapMacAt{
         u2_t getChDcycle(u1_t chID);
         String getChDrrange(u1_t chID);
         String getChStatus(u1_t chID);
-        
+
+    private:
+        void eventJoin(ev_t ev);
+        void eventTx(int fsucces);
+        void messageCallback(void* pUserData, int fSuccess);
     //OTAA attributes    
     private: 
         String devEui = "0000000000000000";
@@ -158,7 +162,7 @@ class WrapMacAt{
 
     //other attributes
     private:
-        UART_HandleTypeDef huart;    
+        UART_HandleTypeDef huart;
         char tempStr[3] = {0x00, 0x00, 0x00};
         String response;
 };
