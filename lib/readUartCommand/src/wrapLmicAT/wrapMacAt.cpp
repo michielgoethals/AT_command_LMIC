@@ -20,6 +20,10 @@ bool joined = false;
 bool otaa = false;
 bool abp = false;
 
+String defaultKey = "00000000000000000000000000000000";
+String defaultEui = "0000000000000000";
+String defaultAddr = "00000000";
+
 //getters for LMIC library
 // LMIC expects reverse from TTN
 void os_getArtEui (u1_t* buf) {
@@ -63,46 +67,70 @@ void WrapMacAt::restoreConfiguration(){
     reset(*(u2_t*)EEPROM_START_ADDR_BAND);
 
     //restore deveui
+    
     char deveui[LORA_EUI_SIZE*2];
     for(u1_t i = 0; i < LORA_EUI_SIZE; i++){
         sprintf(deveui+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVEUI+i));
     }
-    setDevEui(deveui);
+
+    if(strcmp(deveui, (char*)defaultEui.c_str())!=0){
+        setDevEui(deveui);
+    }
 
     //restore appeui
     char appeui[LORA_EUI_SIZE*2];
     for (u1_t i = 0; i < LORA_EUI_SIZE; i++){
         sprintf(appeui+i*2, "%02X", *((char*)EEPROM_START_ADDR_APPEUI+i));
     }
+    
+    //dont check because appeui can be 0
     setAppEui(appeui);
-
+    
     //restore appkey
     char appkey[LORA_KEY_SIZE*2];
     for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
         sprintf(appkey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPKEY+i)));    
     }
-    setAppKey(appkey);
+
+    if(strcmp(appkey, (char*)defaultKey.c_str())!=0){
+        setAppKey(appkey);
+    }
 
     //restore nwkskey
     char nwkskey[LORA_KEY_SIZE*2];
     for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
         sprintf(nwkskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_NWKSKEY+i)));        
     }
-    setNwksKey(nwkskey);
+
+    if(strcmp(nwkskey, (char*)defaultKey.c_str())!=0){
+        setNwksKey(nwkskey);
+    }
 
     //restore appskey
     char appskey[LORA_KEY_SIZE*2];
     for(u1_t i = 0; i < LORA_KEY_SIZE; i++){
         sprintf(appskey+i*2, "%02X", *((char*)(EEPROM_START_ADDR_APPSKEY+i)));       
     }
-    setAppsKey(appskey);
 
+    if(strcmp(appskey, (char*)defaultKey.c_str())!=0){
+        setAppsKey(appskey);
+    }
+    
     //restore devaddr
     char devaddr[LORA_ADDR_SIZE*2];
     for(u1_t i = 0; i < LORA_ADDR_SIZE; i++){
         sprintf(devaddr+i*2, "%02X", *((char*)EEPROM_START_ADDR_DEVADDR-i-1+LORA_ADDR_SIZE));
     }
-    setDevAddr(devaddr);
+
+    if(strcmp(devaddr, (char*)defaultAddr.c_str())!=0){
+        setDevAddr(devaddr);
+    }
+
+    //restore upCnt
+    setUpCtr(*(u4_t*)EEPROM_START_ADDR_FCNTUP);
+    
+    //restore dnCnt
+    setDnCtr(*(u4_t*)EEPROM_START_ADDR_FCNTDOWN);
 
     //RESET CHANNELS
 }
@@ -214,20 +242,13 @@ String WrapMacAt::joinOtaa(){
 
         //set RX2 datarate to SF12 normal???
         LMIC_startJoining();
+        //otherwise join will fail
+        setDr(DR_SF9);
         response = "ok";
 
         LMIC_registerEventCb([](void* pUserData, ev_t ev) {
             static_cast<WrapMacAt*>(pUserData)->eventJoin(ev);
         }, this);
-
-        if(joined){
-            LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
-            char buffer[LORA_EUI_SIZE];
-            itoa(_devaddr, buffer, 16);
-            devAddr = String(buffer); //get devaddr to return in mac get devaddr
-
-            LMIC_setLinkCheckMode(linkchk);
-        }
     }
 
     return response;
@@ -237,6 +258,14 @@ void WrapMacAt::eventJoin(ev_t ev) {
     String response;
     if (ev == EV_JOINED) {
         response = "accepted\r\n";
+
+        /* LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
+        char buffer[LORA_EUI_SIZE];
+        itoa(_devaddr, buffer, 16);
+        devAddr = String(buffer); //get devaddr to return in mac get devaddr
+
+        setDefaultParameters(); */
+
     }else if(ev == EV_JOIN_TXCOMPLETE){
         response = "denied\r\n";
     }
@@ -571,10 +600,11 @@ String WrapMacAt::setAr(char* state){
 //set the datarate and frequency of the second reception slot
 String WrapMacAt::setRx2(u1_t dr, u4_t freq){
     RX2Updated = 1;
-    
-    response = setDr(dr);
 
-    if(freq >= 863000000 && freq <= 870000000){
+    response = "ok";
+    
+    if(freq >= 863000000 && freq <= 870000000 && dr < 6){
+        LMIC.dn2Dr = dr;
         LMIC.dn2Freq = freq; 
     }else{
         response = "invalid_param";
@@ -729,13 +759,19 @@ String WrapMacAt::getAr(){
 
 //get second receive window parameters
 String WrapMacAt::getRx2(u1_t band){
-    return String(LMIC.dn2Dr) + " " + String(LMIC.dn2Freq);
+
+    if(band == 868){
+        response = String(LMIC.dn2Dr) + " " + String(LMIC.dn2Freq);
+    }else{
+        response = "invalid_param";
+    }
+    return response;
 }
 
 //get duty cycle prescaler 
 //TO DO
 u2_t WrapMacAt::getDcycleps(){
-    return LMIC.globalDutyRate;
+    return 0;
 }
 
 //get margin
