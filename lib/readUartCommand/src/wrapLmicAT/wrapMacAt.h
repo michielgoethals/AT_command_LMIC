@@ -37,6 +37,10 @@
 
 #define NET_ID 0x13
 
+extern String defaultKey;
+extern String defaultEui;
+extern String defaultAddr;
+
 class WrapMacAt{
     //set default parameters
     public:

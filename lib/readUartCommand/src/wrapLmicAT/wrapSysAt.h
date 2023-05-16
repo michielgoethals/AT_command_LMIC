@@ -12,7 +12,6 @@
 extern int counter;
 extern u4_t sleepTime;
 
-
 class WrapSysAt{
     //general commands
     public:
@@ -45,11 +44,6 @@ class WrapSysAt{
         String response;
 
         RTC_HandleTypeDef hrtc;
-
-        char* defaultEUI = "0000000000000000";
-        char* defaultKey = "00000000000000000000000000000000";
-        char* defaultDevAddr = "00000000";
-        u2_t defaultband = 868;
         
         //String pinModesList[MAX_PIN_MODES] = {"digout", "digin", "ana"};
         //int pinModes[MAX_PIN_MODES]= {OUTPUT, INPUT, INPUT};

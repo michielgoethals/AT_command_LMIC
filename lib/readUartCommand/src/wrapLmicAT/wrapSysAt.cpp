@@ -63,12 +63,14 @@ void WrapSysAt::factoryRESET(WrapMacAt *macWrapper){
     HAL_FLASHEx_DATAEEPROM_Lock();
     
     macWrapper->reset(868);
-    macWrapper->setDevEui(defaultEUI);
-    macWrapper->setAppEui(defaultEUI);
-    macWrapper->setAppKey(defaultKey);
-    macWrapper->setDevAddr(defaultDevAddr);
-    macWrapper->setNwksKey(defaultKey);
-    macWrapper->setAppsKey(defaultKey);
+    macWrapper->setDevEui((char*)defaultEui.c_str());
+    macWrapper->setAppEui((char*)defaultEui.c_str());
+    macWrapper->setAppKey((char*)defaultKey.c_str());
+    macWrapper->setDevAddr((char*)defaultAddr.c_str());
+    macWrapper->setNwksKey((char*)defaultKey.c_str());
+    macWrapper->setAppsKey((char*)defaultKey.c_str());
+    macWrapper->setUpCtr(0);
+    macWrapper->setDnCtr(0);
     LMICbandplan_setSessionInitDefaultChannels();
     //save default configuration to EEPROM
     macWrapper->save();
