@@ -7,6 +7,12 @@
 
 #define EEPROM_START_NVM_ADDR           0x08080400
 
+#define WAKE_UP_BASE_TIME 0.488 //0.488ms = 16/32,768kHz
+
+extern int counter;
+extern u4_t sleepTime;
+
+
 class WrapSysAt{
     //general commands
     public:

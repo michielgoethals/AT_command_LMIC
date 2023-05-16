@@ -150,8 +150,18 @@ extern "C" void USART2_IRQHandler(void){HAL_UART_IRQHandler(&huart2);}
 
 //Interupt implementations
 extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
-  HAL_RTCEx_DeactivateWakeUpTimer(hrtc);
-  HAL_PWR_DisableSleepOnExit();
+  if(counter > 0){
+    counter--;
+    sleepTime -= 32767;
+    if(sleepTime < 32767){
+      HAL_RTCEx_SetWakeUpTimer_IT(hrtc, sleepTime/WAKE_UP_BASE_TIME, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+    }else{
+      HAL_RTCEx_SetWakeUpTimer_IT(hrtc, 0xFFFF, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+    }
+  }else{
+    HAL_RTCEx_DeactivateWakeUpTimer(hrtc);
+    HAL_PWR_DisableSleepOnExit();
+  }
 }
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

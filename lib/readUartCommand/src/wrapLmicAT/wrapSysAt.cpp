@@ -1,5 +1,8 @@
 #include "wrapSysAt.h"
 
+int counter = 0;
+u4_t sleepTime = 0;
+
 void WrapSysAt::begin(RTC_HandleTypeDef *rtc){
     hrtc = *rtc;
 }
@@ -8,23 +11,31 @@ void WrapSysAt::begin(RTC_HandleTypeDef *rtc){
 String WrapSysAt::sleep(u4_t ms){
     response = "ok";
 
-    //Wake-up Time Base = 16 /(32KHz) = 0.0005 seconds = 0.5 millisecons
-    //==> WakeUpCounter = #ms/0.5ms
+    sleepTime = ms;
+    
+    counter = ms/32767;
 
-    if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, ms/0.5, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK){
-        Error_Handler();
+    //Wakeup Time Base = 16 /(~32.768KHz )  = 0.488 ms
+    //Wakeup Time = 0.488 ms  * WakeUpCounter
+    //WakeUpCounter = Time to sleep in ms / 0.488 ms
+
+    if(counter == 0){
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, ms/WAKE_UP_BASE_TIME, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
+    }else{
+        //set wake up timer to max value
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0xFFFF, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
     }
 
     //Suspend Tick increment to prevent wakeup by Systick interrupt.
     HAL_SuspendTick();
 
-    HAL_PWR_EnableSleepOnExit ();
-
+    HAL_PWR_EnableSleepOnExit();
+        
     //Enter Sleep Mode , wake up is done once RTC wake up interrupt is generated
     HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 
     HAL_ResumeTick();
-    
+
     return response;
 }
 
