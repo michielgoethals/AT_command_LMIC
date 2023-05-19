@@ -257,6 +257,7 @@ String WrapMacAt::joinOtaa(){
 void WrapMacAt::eventJoin(ev_t ev) {
     String response;
     if (ev == EV_JOINED) {
+        joined=true;
         response = "accepted\r\n";
 
         /* LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
@@ -316,14 +317,23 @@ String WrapMacAt::save(){
 
     HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_DEVADDR, _devaddr); //4 bytes
 
-    //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ, LMIC.channelFreq[0]);
-    
-    //this for loop makes endless loop
+    //save frame counters
+    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTUP, LMIC.seqnoUp);
+    HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTDOWN, LMIC.seqnoDn);
+
+    //save channels (freq, dcycle, drrange, status)
     for(u1_t i = 0; i < MAX_CHANNELS; i++){
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ + (9*i), LMIC.channelFreq[i]);
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_DCYCLE + 9*i, LMIC.bands[LMIC.channelFreq[i] & 0x3].txcap);
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_HALFWORD, EEPROM_START_ADDR_CH_DRRANGE + 9*i, LMIC.channelDrMap[i]);
-        //HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS + 9*i, LMIC.channelMap << i);
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_CH_FREQ+(8*i), getChFreq(i));
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_DCYCLE+(8*i), getChDcycle(i));
+        uint8_t drMin = (uint8_t)(getChDrrange(i).charAt(2) - '0');
+        uint8_t drMax = (uint8_t)(getChDrrange(i).charAt(0) - '0');
+        uint8_t drrange = (drMin << 4) | drMax;
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_DRRANGE+(8*i), drrange);
+        bit_t status = 0;
+        if((LMIC.channelMap & (1 << i)) != 0){
+            status = 1;
+        }
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_BYTE, EEPROM_START_ADDR_CH_STATUS+(8*i), status);
     } 
 
     HAL_FLASHEx_DATAEEPROM_Lock();
@@ -881,10 +891,10 @@ String WrapMacAt::getChDrrange(u1_t chID){
 
 // get channel status for given channel ID (0-15)
 String WrapMacAt::getChStatus(u1_t chID){
-    bit_t enabled = LMIC.channelMap << chID;
+    bit_t enabled = (LMIC.channelMap & (1 << chID));
     String status = "off";
     
-    if(enabled == 1){
+    if(enabled != 0){
         status = "on";
     }
 
