@@ -4,16 +4,20 @@
 #define UART USART2
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_RX_Pin GPIO_PIN_3
+#define RTCint RTC_IRQn
+#define UARTint USART2_IRQn
+
+#define MAX_LENGTH_MESSAGE 127
 
 osjob_t initjob;
 osjob_t readAt;
 
 RTC_HandleTypeDef hrtc; 
-UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart;
 
 ReadUartCommand reader; 
 
-uint8_t uart_buffer[128] = {0};
+uint8_t uart_buffer[MAX_LENGTH_MESSAGE] = {0};
 uint8_t buffer_index = 0;
 
 bool commandAvailable = false;
@@ -110,30 +114,30 @@ extern "C" void RTC_Init(void)
   }
 
   /* RTC interrupt Init */
-  HAL_NVIC_SetPriority(RTC_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(RTC_IRQn);
+  HAL_NVIC_SetPriority(RTCint, 0, 0);
+  HAL_NVIC_EnableIRQ(RTCint);
 }
 
 extern "C" void UART_Init(void)
 {
-  huart2.Instance = UART;
-  huart2.Init.BaudRate = 57600;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart.Instance = UART;
+  huart.Init.BaudRate = 57600;
+  huart.Init.WordLength = UART_WORDLENGTH_8B;
+  huart.Init.StopBits = UART_STOPBITS_1;
+  huart.Init.Parity = UART_PARITY_NONE;
+  huart.Init.Mode = UART_MODE_TX_RX;
+  huart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   //bugs when using auto baud rate
-  //huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
-  //huart2.AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
-  //huart2.AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ON0X55FRAME;
+  //huart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
+  //huart.AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
+  //huart.AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ON0X55FRAME;
 
   __HAL_RCC_USART2_CLK_ENABLE();
 
-  if (HAL_UART_Init(&huart2) != HAL_OK)
+  if (HAL_UART_Init(&huart) != HAL_OK)
   {
     Error_Handler();
   }
@@ -145,7 +149,7 @@ extern "C" void UART_Init(void)
 
 //Interrupt handlers
 extern "C" void RTC_IRQHandler(void){HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);}
-extern "C" void USART2_IRQHandler(void){HAL_UART_IRQHandler(&huart2);}
+extern "C" void USART2_IRQHandler(void){HAL_UART_IRQHandler(&huart);}
 
 //Interupt implementations
 extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
@@ -163,16 +167,16 @@ extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
   }
 }
 
-extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *_huart)
 { 
-  if(uart_buffer[buffer_index] == '\n'){
+  if(uart_buffer[buffer_index] == '\n' || buffer_index == MAX_LENGTH_MESSAGE){
     uart_buffer[buffer_index] = '\0';
     commandAvailable = true;
     buffer_index = 0;
   }else{
     buffer_index++;
   }
-  HAL_UART_Receive_IT(&huart2, (uint8_t *)&uart_buffer[buffer_index], 1);
+  HAL_UART_Receive_IT(_huart, (uint8_t *)&uart_buffer[buffer_index], 1);
 }
 
 static void initfunc(osjob_t* j){
@@ -187,9 +191,9 @@ static void initfunc(osjob_t* j){
   //init RTC
   RTC_Init();
   //initializes serial communication and mac parameters
-  reader.begin(BAUDRATE, &huart2, &hrtc);
+  reader.begin(BAUDRATE, &huart, &hrtc);
   //Enable UART interrupt when data is received
-  HAL_UART_Receive_IT(&huart2, (uint8_t *)&uart_buffer[buffer_index], 1);
+  HAL_UART_Receive_IT(&huart, (uint8_t *)&uart_buffer[buffer_index], 1);
 }
 
 static void parseCommand(osjob_t* j){
@@ -197,7 +201,7 @@ static void parseCommand(osjob_t* j){
 }
 
 void setup(void){
-  //initialize run-time environment
+  //initialize LMIC run-time environment
   os_init();
   //run init functions
   os_setCallback(&initjob, initfunc);
