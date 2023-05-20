@@ -115,6 +115,7 @@ class WrapMacAt{
     private:
         void eventJoin(ev_t ev);
         void eventTx(int fsucces);
+        void eventRx(u1_t port, const u1_t* pMessage, size_t nMessage);
         void messageCallback(void* pUserData, int fSuccess);
     //OTAA attributes    
     private: 

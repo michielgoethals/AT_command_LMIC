@@ -209,23 +209,38 @@ void WrapMacAt::eventTx(int fsucces){
         response = "mac_err";
     }else{
         //transmission succesfull
-        if (LMIC.dataLen != 0) {
-            response = "mac_rx ";
-        // Data was received. Extract port number if any.
-            u1_t bPort = 0;
-            if (LMIC.txrxFlags & TXRX_PORT)
-                bPort = LMIC.frame[LMIC.dataBeg - 1];
-                // Call user-supplied function with port #, pMessage, nMessage
-                response += (String)bPort +" " + (String)*LMIC.frame;
-
-                //receiveMessage(bPort, LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
-        }else{
-            response = "mac_tx_ok";
+        response = "mac_tx_ok";
+        if(abp){
+            //save frame up counter
+            HAL_FLASHEx_DATAEEPROM_Unlock();
+            HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTUP, LMIC.seqnoUp);
+            HAL_FLASHEx_DATAEEPROM_Lock();
         }
-
-        response += "\r\n";
-        HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
         
+        LMIC_registerRxMessageCb([](void* pUserData, u1_t port, const u1_t* pMessage, size_t nMessage) {
+            static_cast<WrapMacAt*>(pUserData)->eventRx(port, pMessage, nMessage);
+        }, this);
+    }
+
+    response += "\r\n";
+    HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
+}
+
+void WrapMacAt::eventRx(u1_t port, const u1_t* pMessage, size_t nMessage){
+    String response = "mac_rx ";
+    response += port;
+    response += " ";
+    for(u1_t i = 0; i < nMessage; i++){
+        response += pMessage[i];
+    }
+    response += "\r\n";
+    HAL_UART_Transmit(&huart, (uint8_t*)response.c_str(), response.length(), HAL_MAX_DELAY);
+
+    if(abp){
+        //save frame down counter
+        HAL_FLASHEx_DATAEEPROM_Unlock();
+        HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTDOWN, LMIC.seqnoDn);
+        HAL_FLASHEx_DATAEEPROM_Lock();
     }
 }
 
@@ -903,7 +918,7 @@ String WrapMacAt::getChStatus(u1_t chID){
 
 void onEvent (ev_t ev) {
     String event;
-    switch(ev) {
+    switch(ev){
         case EV_SCAN_TIMEOUT:
             event = "EV_SCAN_TIMEOUT";
             break;
@@ -920,8 +935,7 @@ void onEvent (ev_t ev) {
             event = "EV_JOINING";
             break;
         case EV_JOINED:
-            event = "accepted";
-            joined = true;
+            event = "EV_JOINED";
             break;
         case EV_JOIN_FAILED:
             event = "EV_JOIN_FAILED";
@@ -931,21 +945,6 @@ void onEvent (ev_t ev) {
             break;
         case EV_TXCOMPLETE:
             event = "EV_TXCOMPLETE";
-            if(abp==true){
-                HAL_FLASHEx_DATAEEPROM_Unlock();
-
-                HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTUP, LMIC.seqnoUp); //4 bytes
-                HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, EEPROM_START_ADDR_FCNTDOWN, LMIC.seqnoDn); //4 bytes
-
-                HAL_FLASH_Lock();
-            }
-
-            if (LMIC.txrxFlags & TXRX_ACK){ //if server ack the message
-                event = "mac_ rx";
-                event += String(LMIC.dataBeg-1); //port of received ack
-            }else{
-                event = "mac_tx_ok";
-            }
             break;
         case EV_TXSTART:
             event = "EV_TXSTART";
