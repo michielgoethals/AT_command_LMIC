@@ -158,14 +158,23 @@ String WrapMacAt::reset(u2_t band){
 
 //Send an uplink packet with the specified data and port (cnf or uncnf)
 String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
-    u1_t* datatx = (u1_t*)data;
-    u1_t _cnf;
+    //convert char* data to u1_t* data
+    size_t len = strlen(data);
+    size_t size = (len/2) + (len%2);
 
+    u1_t datatx[size];
+
+    for (size_t i = 0; i < len; i += 2){
+        char temp[3] = {data[i], data[i+1], '\0'};
+        datatx[i/2] = (u1_t)strtol(temp, NULL, 16);
+    }
+    
     if(paused){
         response = "mac_paused";
     }else if(!joined){
         response = "not_joined";
     }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
+        bit_t _cnf;
         if(strcmp(cnf, "cnf")==0){_cnf = 1;}
         else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
         lmic_tx_error_t result = LMIC_sendWithCallback_strict(portno, datatx, sizeof(data)-1, _cnf, [](void* pUserData, int fSuccess) {
