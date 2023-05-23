@@ -160,28 +160,31 @@ String WrapMacAt::reset(u2_t band){
 String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     //convert char* data to u1_t* data
     size_t len = strlen(data);
-    size_t size = (len/2) + (len%2);
+    size_t size = (len + 1) / 2;
 
     u1_t datatx[size];
 
-    for (size_t i = 0; i < len; i += 2){
-        char temp[3] = {data[i], data[i+1], '\0'};
-        datatx[i/2] = (u1_t)strtol(temp, NULL, 16);
+    for (size_t i = 0; i < size; i++) {
+        char temp[3] = {'\0', '\0', '\0'};
+        temp[0] = data[i * 2];
+        if (i * 2 + 1 < len) {
+            temp[1] = data[i * 2 + 1];
+        } else {
+            temp[0] = '0';
+        }
+        datatx[i] = (u1_t)strtol(temp, NULL, 16);
     }
     
     if(paused){
         response = "mac_paused";
     }else if(!joined){
         response = "not_joined";
-    }else if(((portno < 224) & (strcmp(cnf, "cnf")==0)) | ((portno < 224) & (strcmp(cnf, "uncnf")==0))){
-        bit_t _cnf;
+    }else if(((portno < 224 & portno > 0)  & (strcmp(cnf, "cnf")==0)) | ((portno < 224 & portno > 0) & (strcmp(cnf, "uncnf")==0))){
+        bit_t _cnf = 0;
         if(strcmp(cnf, "cnf")==0){_cnf = 1;}
-        else if(strcmp(cnf, "uncnf")==0){_cnf = 0;}
-        lmic_tx_error_t result = LMIC_sendWithCallback_strict(portno, datatx, sizeof(data)-1, _cnf, [](void* pUserData, int fSuccess) {
+        lmic_tx_error_t result = LMIC_sendWithCallback_strict(portno, datatx, size, _cnf, [](void* pUserData, int fSuccess) {
             static_cast<WrapMacAt*>(pUserData)->eventTx(fSuccess);
         }, this);
-
-        //int result = LMIC_setTxData2(portno, datatx, sizeof(datatx)-1, _cnf); //do not change datarate as in RN module
 
         switch (result){
             case LMIC_ERROR_SUCCESS:
