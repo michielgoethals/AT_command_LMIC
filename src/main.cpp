@@ -34,7 +34,7 @@ extern "C" void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
   /** Configure LSE Drive Capability
   */
@@ -169,6 +169,10 @@ extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
 
 extern "C" void HAL_UART_RxCpltCallback(UART_HandleTypeDef *_huart)
 { 
+  //added wake up by uart interrupt
+  HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+  HAL_PWR_DisableSleepOnExit();
+  
   if(uart_buffer[buffer_index] == '\n' || buffer_index == MAX_LENGTH_MESSAGE){
     uart_buffer[buffer_index] = '\0';
     commandAvailable = true;
