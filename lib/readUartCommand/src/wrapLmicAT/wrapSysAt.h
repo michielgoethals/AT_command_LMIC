@@ -48,8 +48,11 @@ class WrapSysAt{
         //String pinModesList[MAX_PIN_MODES] = {"digout", "digin", "ana"};
         //int pinModes[MAX_PIN_MODES]= {OUTPUT, INPUT, INPUT};
         
-        String pinNameList[MAX_GPIO_PINS] = {"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7", "gpio8", "gpio9", 
-        "gpio10", "gpio11", "gpio12", "gpio13", "gpio14", "uart_cts", "uart_rts", "test0", "test1"};
-        int pinList[MAX_GPIO_PINS] = {PB0,PB1,PB2,PB10,PB11,PB12,PB13,PB14,PB15,PA7,PA8,PA9,PA10,PA11,PA12, /*gpio0-14 respectivly*/
-        PA0,PA1,PA14,PA13}; //uart_cts, uart_rts, test0 (SWDCLK), test1 (SWDIO) respectivly
+        //String pinNameList[MAX_GPIO_PINS] = {"gpio0", "gpio1", "gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7", "gpio8", "gpio9", 
+        //"gpio10", "gpio11", "gpio12", "gpio13", "gpio14", "uart_cts", "uart_rts", "test0", "test1"};
+        //int pinList[MAX_GPIO_PINS] = {PB0,PB1,PB2,PB10,PB11,PB12,PB13,PB14,PB15,PA7,PA8,PA9,PA10,PA11,PA12, /*gpio0-14 respectivly*/
+        //PA0,PA1,PA14,PA13}; //uart_cts, uart_rts, test0 (SWDCLK), test1 (SWDIO) respectivly
+
+        String pinNameList[MAX_GPIO_PINS] = {"gpio6", "gpio7", "gpio8", "gpio9", "gpio10", "gpio11", "uart_cts", "uart_rts", "test0", "test1"};
+        int pinList[10] = {PA8, PA9, PA10, PA11, PB10, PB11, PA0, PA1, PA14, PA13}; //gpio6-11, uart_cts, uart_rts, test0 (SWDCLK), test1 (SWDIO) respectivly
 };

@@ -106,8 +106,8 @@ String WrapSysAt::setPinDig(char* pinName, u1_t pinState){
     }else{
         for (u1_t i = 0; i < MAX_GPIO_PINS; i++){
             if(String(pinName) == pinNameList[i]){
-                //pinMode(pinList[i], OUTPUT);
-                //digitalWrite(pinList[i], pinState);
+                pinMode(pinList[i], OUTPUT);
+                digitalWrite(pinList[i], pinState);
                 response = "ok";
             }else{
                 response = "invalid_param";
