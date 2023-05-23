@@ -161,17 +161,21 @@ String WrapMacAt::tx(char* cnf, u1_t portno, char* data){
     //convert char* data to u1_t* data
     size_t len = strlen(data);
     size_t size = (len + 1) / 2;
-
     u1_t datatx[size];
+
+    //if odd add 0 in front of data
+    if (len % 2 != 0) {
+        char* paddedData = (char*)malloc((len + 2) * sizeof(char));
+        paddedData[0] = '0';
+        strcpy(paddedData + 1, data);
+        len = len + 1;
+        data = paddedData;
+    }
 
     for (size_t i = 0; i < size; i++) {
         char temp[3] = {'\0', '\0', '\0'};
         temp[0] = data[i * 2];
-        if (i * 2 + 1 < len) {
-            temp[1] = data[i * 2 + 1];
-        } else {
-            temp[0] = '0';
-        }
+        temp[1] = data[i * 2 + 1];
         datatx[i] = (u1_t)strtol(temp, NULL, 16);
     }
     
@@ -285,6 +289,7 @@ void WrapMacAt::eventJoin(ev_t ev) {
     String response;
     if (ev == EV_JOINED) {
         joined=true;
+        setLinkChk(linkchk);
         response = "accepted\r\n";
 
         /* LMIC_getSessionKeys(&_netid, &_devaddr, _nwkskey, _appskey); 
