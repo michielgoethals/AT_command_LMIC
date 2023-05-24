@@ -265,14 +265,14 @@ String WrapRadioAt::setSf(char* spreadingFactor){
 // 200, 100, 50, 25, 12.5, 6.3, 3.1, 
 // 166.7, 83.3, 41.7, 20.8, 10.4, 5.2, 2.6
 String WrapRadioAt::setAfcBw(float autoFreqBand){
-    response = "ok";
-
-    //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
+   //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
     //RxBWMantAfc (bit 4-3) and RxBWExpAfc (bit 2-0)
 
     for(int i = 0; i < MAX_BW_VALUES; i++){
         if(autoFreqBand == bwList[i]){
             //set auto frequency correction bandwidth
+            i = MAX_BW_VALUES;
+            response = "ok";
             u1_t rxBwMant = bwMantList[i];
             u1_t rxBwExp = bwExpList[i];
             u1_t rxBwvalue = (rxBwMant << 3) | rxBwExp;
@@ -286,14 +286,14 @@ String WrapRadioAt::setAfcBw(float autoFreqBand){
 
 // set receiving signal bandwidth in kHz
 String WrapRadioAt::setRxBw(float rxBandWidth){
-    response = "ok";
-
     //RxBw = Fxtal / RxBwMant * 2^(RxBwExp+2)
     //RxBWMant (bit 4-3) and RxBWExp (bit 2-0)
   
     for(int i = 0; i < MAX_BW_VALUES; i++){
         if(rxBandWidth == bwList[i]){
             //set auto frequency correction bandwidth
+            i = MAX_BW_VALUES;
+            response = "ok";
             u1_t rxBwMant = bwMantList[i];
             u1_t rxBwExp = bwExpList[i];
             u1_t rxBwValue = (rxBwMant << 3) | rxBwExp;
@@ -632,7 +632,7 @@ String WrapRadioAt::getCr(){
 
 //get current watch dog timer time-out lenght in ms
 u4_t WrapRadioAt::getWdt(){
-
+    return 0;
 }
 
 // get bandwidth of the radio
