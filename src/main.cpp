@@ -155,8 +155,8 @@ extern "C" void USART2_IRQHandler(void){HAL_UART_IRQHandler(&huart);}
 extern "C" void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc){
   if(counter > 0){
     counter--;
-    sleepTime -= 32767;
-    if(sleepTime < 32767){
+    sleepTime -= 32000;
+    if(sleepTime < 32000){
       HAL_RTCEx_SetWakeUpTimer_IT(hrtc, sleepTime/WAKE_UP_BASE_TIME, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
     }else{
       HAL_RTCEx_SetWakeUpTimer_IT(hrtc, 0xFFFF, RTC_WAKEUPCLOCK_RTCCLK_DIV16);
