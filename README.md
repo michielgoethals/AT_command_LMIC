@@ -2,6 +2,5 @@
 
 This repository is a expansion of the LMIC library to work with the RN2483 AT commands.
 
-Here is an overview of wich commands are currently implemented and working correctly:
+An overview of which commands are currently implemented and working correctly can be found in the DOC folder as a PDF.
 
-![Supported AT-commands](./DOC/Supported AT-commands.pdf)
